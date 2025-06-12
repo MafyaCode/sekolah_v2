@@ -78,7 +78,7 @@ Ini adalah aplikasi Sistem Informasi Sekolah berbasis Java Swing yang dikembangk
             * JDBC Driver: `PostgreSQL (org.postgresql.Driver)` (pastikan `postgresql-42.7.7.jar` atau yang relevan sudah ditambahkan ke driver Jaspersoft Studio jika belum ada).
             * JDBC URL: `jdbc:postgresql://localhost:5432/db_sekolah`
             * Username: `postgres`
-            * Password: `MafyaBrian25`
+            * Password: ``
             * Klik `Test Connection` untuk memverifikasi.
     * **Edit Query SQL di Setiap Laporan (.jrxml):**
         * Buka setiap file `.jrxml` di Jaspersoft Studio.
@@ -104,8 +104,8 @@ Ini adalah aplikasi Sistem Informasi Sekolah berbasis Java Swing yang dikembangk
 ## Informasi Login Default (Setelah mengisi data awal)
 
 * **Admin:**
-    * Username: `kepsek` / `brian` / `staff`
-    * Password: `kepsek123` / `brian123` / `staff123`
+    * Username: `kepsek` / `ini kamu ea` / `staff`
+    * Password: `kepsek123` / `kamu123` / `staff123`
 * **Guru:**
     * Username: `gurumtk` / `gurubindo` / `guruinggris` / ...
     * Password: `guru123`
