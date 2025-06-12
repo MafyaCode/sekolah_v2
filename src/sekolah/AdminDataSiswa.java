@@ -3,23 +3,25 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
+import java.sql.Date; // Penting untuk tipe data DATE
+import java.sql.Types; // Untuk penanganan null pada PreparedStatement
+// import java.sql.*; // Duplikat, sudah ada import spesifik
 import java.util.HashMap;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -41,6 +43,10 @@ public class AdminDataSiswa extends javax.swing.JFrame {
     public AdminDataSiswa(int idAdmin) {
         this.idAdmin = idAdmin;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
+        buttonGroup1.add(rbLaki); // Menambahkan radio button ke group
+        buttonGroup1.add(rbPerempuan); // Menambahkan radio button ke group
+        loadTableData(); // Muat data awal saat frame dibuat
     }
    
     /**
@@ -78,9 +84,9 @@ public class AdminDataSiswa extends javax.swing.JFrame {
         jLabel8 = new javax.swing.JLabel();
         txt_username = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
-        txt_password = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
         txt_kelas = new javax.swing.JTextField();
+        txt_password = new javax.swing.JPasswordField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -166,6 +172,8 @@ public class AdminDataSiswa extends javax.swing.JFrame {
         jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel10.setText("Kelas");
 
+        txt_password.setText("jPasswordField1");
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -218,8 +226,8 @@ public class AdminDataSiswa extends javax.swing.JFrame {
                                         .addGap(71, 71, 71)
                                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                             .addComponent(txt_kelas, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
-                                            .addComponent(txt_password, javax.swing.GroupLayout.DEFAULT_SIZE, 99, Short.MAX_VALUE)
-                                            .addComponent(txt_username))))
+                                            .addComponent(txt_username)
+                                            .addComponent(txt_password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                                 .addGap(0, 0, Short.MAX_VALUE)))))
                 .addContainerGap())
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
@@ -260,8 +268,8 @@ public class AdminDataSiswa extends javax.swing.JFrame {
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(txt_tanggallahir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel5)
-                                    .addComponent(txt_password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel9))
+                                    .addComponent(jLabel9)
+                                    .addComponent(txt_password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(18, 18, 18)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel6)
@@ -304,77 +312,361 @@ public class AdminDataSiswa extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDashboard guestPage = new AdminDashboard(idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
-    private void btnLIHATDATAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATDATAActionPerformed
-        // TODO add your handling code here:
+    private void tblDATASISWAMouseClicked(java.awt.event.MouseEvent evt) {                                        
+        int selectedRow = tblDATASISWA.getSelectedRow();
+        if (selectedRow == -1) {
+            return;
+        }
+
         DefaultTableModel model = (DefaultTableModel) tblDATASISWA.getModel();
-        model.setRowCount(0);
-        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-             Statement stmt = con.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM anggota")){
+
+        txt_idanggota.setText(model.getValueAt(selectedRow, 0).toString()); // ID Anggota
+        txt_username.setText(model.getValueAt(selectedRow, 1).toString()); // Username
+        txt_password.setText(model.getValueAt(selectedRow, 2).toString()); // Password
+        txt_nama.setText(model.getValueAt(selectedRow, 3).toString());     // Nama
+        txt_NIS.setText(model.getValueAt(selectedRow, 4).toString());      // NIS
+        txt_kelas.setText(model.getValueAt(selectedRow, 5).toString());    // Kelas
+        txt_tanggallahir.setText(model.getValueAt(selectedRow, 6).toString()); // Tanggal Lahir
+        
+        String jenisKelamin = model.getValueAt(selectedRow, 7).toString(); // Jenis Kelamin
+        if ("Laki-laki".equals(jenisKelamin)) {
+            rbLaki.setSelected(true);
+            rbPerempuan.setSelected(false);
+        } else if ("Perempuan".equals(jenisKelamin)) {
+            rbPerempuan.setSelected(true);
+            rbLaki.setSelected(false);
+        } else {
+            rbLaki.setSelected(false);
+            rbPerempuan.setSelected(false);
+        }
+        
+        txt_alamat.setText(model.getValueAt(selectedRow, 8).toString()); // Alamat
+    }
+
+    private void btnLIHATDATAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATDATAActionPerformed
+        loadTableData(); // Panggil metode untuk memuat ulang data
+    }//GEN-LAST:event_btnLIHATDATAActionPerformed
+
+    private void btnUPDATEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUPDATEActionPerformed
+        updateSiswaData(); // Panggil metode untuk melakukan update
+    }//GEN-LAST:event_btnUPDATEActionPerformed
+
+    private void btnSIMPANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSIMPANActionPerformed
+        saveSiswaData(); // Panggil metode untuk menyimpan data
+    }//GEN-LAST:event_btnSIMPANActionPerformed
+
+    private void btnHAPUSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHAPUSActionPerformed
+        deleteSiswaData(); // Panggil metode untuk menghapus data
+    }//GEN-LAST:event_btnHAPUSActionPerformed
+
+    // --- Metode Bantuan untuk Operasi Database ---
+
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
+        DefaultTableModel model = (DefaultTableModel) tblDATASISWA.getModel();
+        model.setRowCount(0); // Bersihkan baris yang ada
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
+                return;
+            }
+
+            String sql = "SELECT idanggota, username, password, nama, nis, kelas, tanggal_lahir, jeniskelamin, alamat FROM anggota ORDER BY idanggota ASC";
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(sql);
+
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("idanggota"),
+                    rs.getString("username"),
+                    rs.getString("password"),
                     rs.getString("nama"),  
                     rs.getString("nis"),
                     rs.getString("kelas"),
-                    rs.getDate("tanggallahir"),
+                    rs.getDate("tanggal_lahir"), // Menggunakan getDate() untuk DATE
                     rs.getString("jeniskelamin"),
                     rs.getString("alamat")
                 };
                 model.addRow(row);
-        }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-        }
-    }//GEN-LAST:event_btnLIHATDATAActionPerformed
-
-    private void btnUPDATEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUPDATEActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
-    }//GEN-LAST:event_btnUPDATEActionPerformed
-
-    private void btnSIMPANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSIMPANActionPerformed
-        // TODO add your handling code here:
-        try {
-            String idanggota = txt_idanggota.getText();
-            String username = txt_username.getText();
-            String password = txt_password.getText();
-            String nama = txt_nama.getText();
-            String nis = txt_NIS.getText();
-            String kelas = txt_kelas.getText();
-            String tanggallahir = txt_tanggallahir.getText();
-            String alamat = txt_alamat.getText();
-            String jeniskelamin = "";
-            if (rbLaki.isSelected()) {
-                jeniskelamin = "Laki-laki";
-            } else if (rbPerempuan.isSelected()) {
-                jeniskelamin = "Perempuan";
             }
-        String sql = "INSERT INTO anggota (idanggota,username, password, nama, nis, kelas, tanggallahir, jeniskelamin, alamat) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost/sekolah_smp", "root", "");
-        PreparedStatement pst = con.prepareStatement(sql);
-        pst.setString(1, idanggota);
-        pst.setString(2, username);
-        pst.setString(3, password);
-        pst.setString(4, nama);
-        pst.setString(5, nis);
-        pst.setString(6, kelas);
-        pst.setString(7, tanggallahir);
-        pst.setString(8, jeniskelamin);
-        pst.setString(9, alamat);
-        pst.executeUpdate();
-        JOptionPane.showMessageDialog(null, "Data berhasil ditambahkan!");
-        javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel)tblDATASISWA.getModel();
-        int noSiswa =model.getRowCount() + 1;
-        model.addRow(new Object[] {
-            noSiswa, nama, nis, kelas, tanggallahir, jeniskelamin, alamat
-        } );
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data siswa: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    // Metode untuk menyimpan data siswa baru
+    private void saveSiswaData() {
+        // String idanggota = txt_idanggota.getText(); // ID Anggota tidak perlu diambil karena SERIAL
+        String username = txt_username.getText().trim();
+        String password = new String(txt_password.getText().trim()); // Ambil password sebagai String
+        String nama = txt_nama.getText().trim();
+        String nis = txt_NIS.getText().trim();
+        String kelas = txt_kelas.getText().trim();
+        String tanggallahirStr = txt_tanggallahir.getText().trim();
+        String alamat = txt_alamat.getText().trim();
+        String jeniskelamin = "";
+        if (rbLaki.isSelected()) {
+            jeniskelamin = "Laki-laki";
+        } else if (rbPerempuan.isSelected()) {
+            jeniskelamin = "Perempuan";
+        } else {
+            JOptionPane.showMessageDialog(this, "Jenis Kelamin harus dipilih.");
+            return;
+        }
+
+        if (username.isEmpty() || password.isEmpty() || nama.isEmpty() || nis.isEmpty() || kelas.isEmpty() || tanggallahirStr.isEmpty() || alamat.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua kolom input harus diisi.");
+            return;
+        }
+
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rsGeneratedKeys = null; // Untuk mengambil ID yang dihasilkan
+
+        try {
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat disimpan.");
+                return;
+            }
+            
+            // Konversi tanggal lahir dari String ke java.sql.Date
+            Date tanggallahirSql = null;
+            try {
+                tanggallahirSql = Date.valueOf(tanggallahirStr); // Format YYYY-MM-DD
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, "Format Tanggal Lahir tidak valid. Gunakan YYYY-MM-DD.");
+                return;
+            }
+
+            // Kolom idanggota TIDAK perlu disertakan karena SERIAL
+            String sql = "INSERT INTO anggota (username, password, nama, nis, kelas, tanggal_lahir, jeniskelamin, alamat) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            // Menggunakan Statement.RETURN_GENERATED_KEYS untuk mendapatkan ID yang baru dibuat
+            pst = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            
+            pst.setString(1, username);
+            pst.setString(2, password);
+            pst.setString(3, nama);
+            pst.setString(4, nis);
+            pst.setString(5, kelas);
+            pst.setDate(6, tanggallahirSql); // Menggunakan setDate()
+            pst.setString(7, jeniskelamin);
+            pst.setString(8, alamat);
+            
+            pst.executeUpdate();
+
+            // Mengambil ID yang baru dihasilkan
+            rsGeneratedKeys = pst.getGeneratedKeys();
+            int newIdAnggota = -1;
+            if (rsGeneratedKeys.next()) {
+                newIdAnggota = rsGeneratedKeys.getInt(1); // Ambil ID dari kolom pertama
+            }
+
+            JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan!");
+            clearFormFields(); // Mengosongkan form
+            loadTableData(); // Muat ulang data tabel
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menyimpan data siswa (SQL Error): " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rsGeneratedKeys != null) rsGeneratedKeys.close();
+                if (pst != null) pst.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    // Metode untuk menghapus data siswa
+    private void deleteSiswaData() {
+        int selectedRow = tblDATASISWA.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih data yang ingin dihapus dari tabel!");
+            return;
+        }
+
+        // Ambil idanggota dari kolom pertama tabel (kolom 0)
+        String idanggotaStr = tblDATASISWA.getValueAt(selectedRow, 0).toString();
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Yakin ingin menghapus data siswa dengan ID " + idanggotaStr + "?", "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Connection con = null;
+            PreparedStatement pst = null;
+            try {
+                con = Koneksi.getConnection();
+                if (con == null) {
+                    JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dihapus.");
+                    return;
+                }
+
+                String sql = "DELETE FROM anggota WHERE idanggota = ?";
+                pst = con.prepareStatement(sql);
+                pst.setInt(1, Integer.parseInt(idanggotaStr)); // Menggunakan setInt()
+                
+                int rowsAffected = pst.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(this, "Data siswa berhasil dihapus!");
+                    loadTableData(); // Muat ulang data tabel
+                    clearFormFields(); // Bersihkan form
+                } else {
+                    JOptionPane.showMessageDialog(this, "Gagal menghapus data siswa. Data tidak ditemukan.");
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "ID Anggota tidak valid.");
+            } catch (SQLException e) {
+                // Tangani Foreign Key Constraint Violation (misal jika ada data absen/nilai yang terkait)
+                if (e.getSQLState().startsWith("23")) { // SQLState untuk integrity constraint violation
+                    JOptionPane.showMessageDialog(this, "Tidak dapat menghapus siswa karena ada data terkait di tabel lain (misal: absen, nilai, laporan). Hapus data terkait terlebih dahulu.", "Kesalahan Penghapusan", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Gagal menghapus data siswa (SQL Error): " + e.getMessage());
+                }
+                e.printStackTrace();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (pst != null) pst.close();
+                    if (con != null) con.close();
+                } catch (SQLException ex) {
+                    System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Metode untuk memperbarui data siswa
+    private void updateSiswaData() {
+        int selectedRow = tblDATASISWA.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih baris yang ingin diperbarui di tabel.");
+            return;
+        }
+        
+        String idanggotaStr = txt_idanggota.getText().trim();
+        String username = txt_username.getText().trim();
+        String password = new String(txt_password.getPassword()); // Ambil password dari JPasswordField
+        String nama = txt_nama.getText().trim();
+        String nis = txt_NIS.getText().trim();
+        String kelas = txt_kelas.getText().trim();
+        String tanggallahirStr = txt_tanggallahir.getText().trim();
+        String alamat = txt_alamat.getText().trim();
+        String jeniskelamin = "";
+        if (rbLaki.isSelected()) {
+            jeniskelamin = "Laki-laki";
+        } else if (rbPerempuan.isSelected()) {
+            jeniskelamin = "Perempuan";
+        } else {
+            JOptionPane.showMessageDialog(this, "Jenis Kelamin harus dipilih.");
+            return;
+        }
+
+        if (idanggotaStr.isEmpty() || username.isEmpty() || password.isEmpty() || nama.isEmpty() || nis.isEmpty() || kelas.isEmpty() || tanggallahirStr.isEmpty() || alamat.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua kolom input harus diisi untuk pembaruan.");
+            return;
+        }
+        
+        Connection con = null;
+        PreparedStatement pstmt = null;
+
+        try {
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat diperbarui.");
+                return;
+            }
+
+            int idanggota = Integer.parseInt(idanggotaStr);
+            
+            // Konversi tanggal lahir dari String ke java.sql.Date
+            Date tanggallahirSql = null;
+            try {
+                tanggallahirSql = Date.valueOf(tanggallahirStr); // Format YYYY-MM-DD
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, "Format Tanggal Lahir tidak valid. Gunakan YYYY-MM-DD.");
+                return;
+            }
+            
+            // Query UPDATE. Pastikan nama kolom sesuai DB PostgreSQL
+            // Perhatikan bahwa username dan password juga diupdate di sini.
+            String sql = "UPDATE anggota SET username = ?, password = ?, nama = ?, nis = ?, kelas = ?, tanggal_lahir = ?, jeniskelamin = ?, alamat = ? WHERE idanggota = ?";
+            pstmt = con.prepareStatement(sql);
+            
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            pstmt.setString(3, nama);
+            pstmt.setString(4, nis);
+            pstmt.setString(5, kelas);
+            pstmt.setDate(6, tanggallahirSql);
+            pstmt.setString(7, jeniskelamin);
+            pstmt.setString(8, alamat);
+            pstmt.setInt(9, idanggota); // WHERE clause
+            
+            int rowsUpdated = pstmt.executeUpdate();
+            
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(this, "Data siswa berhasil diperbarui!");
+                loadTableData(); // Muat ulang data tabel
+                clearFormFields(); // Bersihkan form
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal memperbarui data siswa. ID Anggota tidak ditemukan.");
+            }
+            
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID Anggota tidak valid.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memperbarui data siswa (SQL Error): " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    // Metode untuk membersihkan input form
+    private void clearFormFields() {
         txt_idanggota.setText("");
         txt_username.setText("");
         txt_password.setText("");
@@ -383,78 +675,9 @@ public class AdminDataSiswa extends javax.swing.JFrame {
         txt_kelas.setText("");
         txt_tanggallahir.setText("");
         txt_alamat.setText("");
-        rbLaki.setSelected(false);
-        rbPerempuan.setSelected(false);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Gagal menyimpan data: "+e.getMessage());
-        }
-    }//GEN-LAST:event_btnSIMPANActionPerformed
-
-    private void btnHAPUSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHAPUSActionPerformed
-        // TODO add your handling code here:
-        try {
-            int selectedRow = tblDATASISWA.getSelectedRow();
-            if (selectedRow == -1) {
-                JOptionPane.showMessageDialog(null, "Pilih data yang ingin dihapus!");
-                return;
-            }
-            String idanggota = tblDATASISWA.getValueAt(selectedRow, 0).toString();
-            int confirm = javax.swing.JOptionPane.showConfirmDialog(
-                null,
-                "Yakin ingin menghapus data?", "Konfirmasi",
-                javax.swing.JOptionPane.YES_NO_OPTION );
-                if (confirm == javax.swing.JOptionPane.YES_OPTION) {
-                String sql = "DELETE FROM anggota WHERE idanggota = ?";
-                Connection con = DriverManager.getConnection("jdbc:mysql://localhost/sekolah_smp", "root", "");
-                PreparedStatement pst = con.prepareStatement(sql);
-                pst.setString(1, idanggota);
-                pst.executeUpdate();
-                JOptionPane.showMessageDialog(null, "Data berhasil dihapus!");
-                loadDataForm();
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Gagal menghapus data: "+e.getMessage());
-        }
-         
-    }//GEN-LAST:event_btnHAPUSActionPerformed
-        private void loadDataForm() {
-    DefaultTableModel model = (DefaultTableModel) tblDATASISWA.getModel();
-    int selectedRow = tblDATASISWA.getSelectedRow();
-    
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(this, "Pilih baris yang ingin diperbarui.");
-        return;
+        buttonGroup1.clearSelection(); // Mengosongkan pilihan radio button
     }
-    try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-         PreparedStatement pstmt = con.prepareStatement(    
-             "UPDATE anggota SET nama = ?, nis = ?, " +
-             "kelas = ?, tanggallahir = ?, jeniskelamin = ?, alamat = ? WHERE idanggota = ?")) {
-        int idanggota = Integer.parseInt(model.getValueAt(selectedRow, 0).toString());
-         String nama = model.getValueAt(selectedRow, 1).toString();
-         String nis = model.getValueAt(selectedRow, 2).toString();
-         String kelas = model.getValueAt(selectedRow, 3).toString();
-         String tanggallahir = model.getValueAt(selectedRow, 4).toString();
-         String jeniskelamin = model.getValueAt(selectedRow, 5).toString();
-         String alamat = model.getValueAt(selectedRow, 6).toString();
-         
-         pstmt.setString(1, nama);
-         pstmt.setString(2, nis);
-         pstmt.setString(3, kelas);
-         pstmt.setString(4, tanggallahir);
-         pstmt.setString(5, jeniskelamin);
-         pstmt.setString(6, alamat);
-         pstmt.setInt(7, idanggota);
-         int rowsUpdate = pstmt.executeUpdate();
-         if (rowsUpdate > 0) {
-             JOptionPane.showMessageDialog(this, "Data berhasil diperbarui.");
-         } else {
-             JOptionPane.showMessageDialog(this, "Gagal memperbarui data.");
-         }
-    } catch (SQLException e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat update data:" +e.getMessage());
-            }
-        }
+
     /**
      * @param args the command line arguments
      */
@@ -486,13 +709,14 @@ public class AdminDataSiswa extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-          int idAdmin = 123;
+          int idAdmin = 1; // ID Admin dummy untuk pengujian mandiri
 
             AdminDataSiswa cpage = new AdminDataSiswa(idAdmin);
             cpage.setVisible(true);
             }
         });
     }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnHAPUS;
@@ -521,7 +745,7 @@ public class AdminDataSiswa extends javax.swing.JFrame {
     private javax.swing.JTextField txt_idanggota;
     private javax.swing.JTextField txt_kelas;
     private javax.swing.JTextField txt_nama;
-    private javax.swing.JTextField txt_password;
+    private javax.swing.JPasswordField txt_password;
     private javax.swing.JTextField txt_tanggallahir;
     private javax.swing.JTextField txt_username;
     // End of variables declaration//GEN-END:variables

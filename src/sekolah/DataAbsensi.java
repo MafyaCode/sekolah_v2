@@ -4,40 +4,34 @@
  */
 package sekolah;
 
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import javax.swing.JOptionPane;
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+import javax.swing.table.DefaultTableModel;
+// import javax.swing.*; // Sudah tercakup oleh import spesifik
 
 /**
  *
  * @author fitri
  */
 public class DataAbsensi extends javax.swing.JFrame {
-     private int idanggota;
-    private Connection con;
-    
+    private int idanggota;
+    // private Connection con; // Hapus ini, koneksi diambil dan ditutup per method
+
     /**
      * Creates new form DataAbsensi
      */
     public DataAbsensi(int idanggota) {
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
         this.idanggota = idanggota;
-        try {
-            
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-        } catch (ClassNotFoundException | SQLException e) {
-            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
+        // Tidak perlu koneksi di constructor, ambil setiap kali dibutuhkan dan tutup
+        loadDataForm(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -66,33 +60,46 @@ public class DataAbsensi extends javax.swing.JFrame {
         btnLIHATABSENSI = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Data Absensi Siswa"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("Nama");
 
+        text_nama.setEditable(false); // Tidak bisa di-edit
+        
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel2.setText("Kelas");
 
+        text_kelas.setEditable(false); // Tidak bisa di-edit
+        
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel3.setText("Hadir");
 
+        text_hadir.setEditable(false); // Tidak bisa di-edit
+        
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel4.setText("Alfa");
+        jLabel4.setText("Alfa (Sakit)"); // Mengubah label agar sesuai dengan jumlahlahsakit
 
+        text_alfa.setEditable(false); // Tidak bisa di-edit
+        
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel5.setText("Sakit");
+        jLabel5.setText("Sakit (Izin)"); // Mengubah label agar sesuai dengan jumlahizin
 
+        text_sakit.setEditable(false); // Tidak bisa di-edit
+        
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel6.setText("Izin");
+        jLabel6.setText("Izin"); // Ini adalah label untuk jumlahizin
 
-        btnKEMBALI.setText("CLOSE");
+        text_izin.setEditable(false); // Tidak bisa di-edit
+
+        btnKEMBALI.setText("KEMBALI"); // Mengubah teks agar lebih umum
         btnKEMBALI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnKEMBALIActionPerformed(evt);
             }
         });
 
-        btnLIHATABSENSI.setText("LIHAT ABSENSI");
+        btnLIHATABSENSI.setText("REFRESH"); // Mengubah teks agar lebih umum
         btnLIHATABSENSI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLIHATABSENSIActionPerformed(evt);
@@ -181,47 +188,76 @@ public class DataAbsensi extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         DataPage guestPage = new DataPage(idanggota);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnLIHATABSENSIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATABSENSIActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        loadDataForm(); // Panggil metode untuk memuat ulang data
     }//GEN-LAST:event_btnLIHATABSENSIActionPerformed
+
+    // Metode untuk memuat data absensi siswa
     private void loadDataForm() {
-    try {
-        String query = "SELECT a.nama, a.kelas, ab.jumlahkehadiran, ab.jumlahalfa, ab.jumlahsakit, ab.jumlahizin "
-                     + "FROM absen ab "
-                     + "JOIN anggota a ON ab.idanggota = a.idanggota "
-                     + "WHERE ab.idanggota = ?";
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
 
-        PreparedStatement pstmt = con.prepareStatement(query);
-        pstmt.setInt(1, idanggota);  // idanggota sebagai parameter filter
-        ResultSet rs = pstmt.executeQuery();
+        try {
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
+                return;
+            }
 
-        if (rs.next()) {
-            text_nama.setText(rs.getString("nama"));
-            text_kelas.setText(rs.getString("kelas"));
-            text_hadir.setText(rs.getString("jumlahkehadiran"));
-            text_alfa.setText(rs.getString("jumlahalfa"));
-            text_sakit.setText(rs.getString("jumlahsakit"));
-            text_izin.setText(rs.getString("jumlahizin"));
-        } else {
-            JOptionPane.showMessageDialog(this, "Data absensi tidak ditemukan untuk idanggota: " + idanggota);
+            // Query untuk mendapatkan data absensi dan info anggota
+            // Perhatikan: 'jumlahalfa' di kode asli Anda, di DB PostgreSQL ini adalah 'jumlahlahsakit'
+            String query = "SELECT a.nama, a.kelas, ab.jumlahkehadiran, ab.jumlahlahsakit, ab.jumlahizin "
+                         + "FROM absen ab "
+                         + "JOIN anggota a ON ab.idanggota = a.idanggota "
+                         + "WHERE ab.idanggota = ?";
+
+            pstmt = con.prepareStatement(query);
+            pstmt.setInt(1, idanggota); // idanggota sebagai parameter filter
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                text_nama.setText(rs.getString("nama"));
+                text_kelas.setText(rs.getString("kelas"));
+                text_hadir.setText(String.valueOf(rs.getInt("jumlahkehadiran")));
+                text_alfa.setText(String.valueOf(rs.getInt("jumlahlahsakit"))); // Map ke 'Alfa' label
+                text_sakit.setText(String.valueOf(rs.getInt("jumlahizin")));    // Map ke 'Sakit' label
+                text_izin.setText(String.valueOf(rs.getInt("jumlahizin"))); // Duplikat, periksa label di GUI
+
+            } else {
+                JOptionPane.showMessageDialog(this, "Data absensi tidak ditemukan untuk ID anggota: " + idanggota);
+                // Bersihkan field jika data tidak ditemukan
+                text_nama.setText("");
+                text_kelas.setText("");
+                text_hadir.setText("");
+                text_alfa.setText("");
+                text_sakit.setText("");
+                text_izin.setText("");
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat data absensi: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) { // Tangkap Exception umum untuk kesalahan tak terduga
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan tak terduga: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Pastikan semua resource ditutup di blok finally
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-
-        rs.close();
-        pstmt.close();
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat data absensi: " + e.getMessage());
-        e.printStackTrace();
     }
-}
-
-
 
     /**
      * @param args the command line arguments
@@ -253,9 +289,9 @@ public class DataAbsensi extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
         public void run() {
-                int idAnggota = 1; // Ganti dengan nilai idPasien yang sesuai dari hasil query
+                int idAnggota = 1; // ID Anggota dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
             DataAbsensi cpage = new DataAbsensi (idAnggota);
-            cpage.setVisible(true);; // Menampilkan halaman Guest
+            cpage.setVisible(true);
                }
         });
    

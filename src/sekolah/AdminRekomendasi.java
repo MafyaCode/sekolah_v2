@@ -4,27 +4,27 @@
  */
 package sekolah;
 
+import config.Koneksi; // Import kelas Koneksi kamu
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.sql.*;
+// import java.sql.*; // Duplikat, sudah ada import spesifik
 import java.util.HashMap;
-import java.util.Locale;
+import java.util.Locale; // Sudah ada, tidak perlu duplikat
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
@@ -43,8 +43,10 @@ private int idAdmin;
     public AdminRekomendasi(int idAdmin) {
         this.idAdmin = idAdmin;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
         Locale locale = new Locale("id","ID");
         Locale.setDefault(locale);
+        loadTableData(); // Muat data awal saat frame dibuat
     }
 
     /**
@@ -65,18 +67,27 @@ private int idAdmin;
         btnCETAK = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Admin Rekomendasi"); // Menambahkan judul window
 
         tblDATAREKOMENDASI.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null}, // Menambahkan kolom internal ID
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "No", "Nama", "NIS", "Kelas", "Rekomendasi"
+                "No", "ID Anggota", "Nama", "NIS", "Kelas", "Hadir", "Nilai Akhir", "Tgl Rekomendasi", "Rekomendasi"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblDATAREKOMENDASI);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -159,98 +170,164 @@ private int idAdmin;
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDashboard guestPage = new AdminDashboard (idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnCETAKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCETAKActionPerformed
-        // TODO add your handling code here:
+        Connection con = null;
         try {
-    InputStream reportStream = getClass().getResourceAsStream("/Report/ReportRekomendasi.jasper");
+            // Jalur ke file .jasper. Asumsikan ada di folder src/Report
+            InputStream reportStream = getClass().getResourceAsStream("/Report/ReportRekomendasi.jasper");
 
-    if (reportStream == null) {
-        throw new FileNotFoundException("Report .jasper tidak ditemukan!");
-    }
+            if (reportStream == null) {
+                throw new Exception("File laporan ReportRekomendasi.jasper tidak ditemukan di classpath.");
+            }
 
-    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-    
-    HashMap<String, Object> parameters = new HashMap<>();
-    parameters.put("idanggota", idAdmin);
-
-    JasperPrint print = JasperFillManager.fillReport(reportStream, parameters, con);
-    JasperViewer viewer = new JasperViewer(print, false);
-    viewer.setVisible(true);
-    
-} catch (Exception e) {
-    e.printStackTrace();
-    JOptionPane.showMessageDialog(null, "Terjadi error: " + e.getMessage());
-}
+            con = Koneksi.getConnection(); // Gunakan kelas Koneksi kamu
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Laporan tidak dapat dicetak.");
+                return;
+            }
+            
+            HashMap<String, Object> parameters = new HashMap<>();
+            // Jika ada parameter yang perlu dikirim ke laporan (misal: ID siswa tertentu), tambahkan di sini
+            // parameters.put("idanggota", idAdmin); // idAdmin ini ID admin, bukan ID anggota. Hati-hati.
+            // Jika laporan rekomendasi per siswa, Anda perlu memilih siswa dulu atau mengambil ID dari tabel.
+            
+            JasperPrint print = JasperFillManager.fillReport(reportStream, parameters, con);
+            JasperViewer viewer = new JasperViewer(print, false);
+            viewer.setVisible(true);
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat mencetak laporan rekomendasi: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup koneksi database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
     }//GEN-LAST:event_btnCETAKActionPerformed
 
     private void btnREKOMENDASIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnREKOMENDASIActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        loadTableData(); // Panggil metode untuk memuat ulang data
     }//GEN-LAST:event_btnREKOMENDASIActionPerformed
-    private void loadDataForm() {
-    DefaultTableModel model = (DefaultTableModel) tblDATAREKOMENDASI.getModel();
-    model.setRowCount(0);
 
-    String sql = "SELECT a.nama, a.nis, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS " +
-                 "FROM anggota a " +
-                 "JOIN absen ab ON a.idanggota = ab.idanggota " +
-                 "JOIN nilai n ON a.idanggota = n.idanggota";
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
+        DefaultTableModel model = (DefaultTableModel) tblDATAREKOMENDASI.getModel();
+        model.setRowCount(0); // Bersihkan baris yang ada
 
-    final int TOTAL_HARI = 30;
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
 
-    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-         PreparedStatement pst = conn.prepareStatement(sql);
-         ResultSet rs = pst.executeQuery()) {
+        // Query untuk mengambil data anggota, absen, dan nilai untuk perhitungan rekomendasi
+        String sql = "SELECT a.idanggota, a.nama, a.nis, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS, n.nilaiAkhir " +
+                     "FROM anggota a " +
+                     "JOIN absen ab ON a.idanggota = ab.idanggota " +
+                     "JOIN nilai n ON a.idanggota = n.idanggota ORDER BY a.idanggota ASC";
 
-        int nomor = 1;  // Inisialisasi nomor urut
+        final int TOTAL_HARI = 30; // Konstanta untuk total hari absensi
 
-        while (rs.next()) {
-            String nama = rs.getString("nama");
-            String nis = rs.getString("nis");
-            String kelas = rs.getString("kelas");
-            int kehadiran = rs.getInt("jumlahkehadiran");
-            double nilaiUH = rs.getDouble("nilaiUH");
-            double nilaiUTS = rs.getDouble("nilaiUTS");
-            double nilaiUAS = rs.getDouble("nilaiUAS");
-
-            double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
-            double nilaiAbsensi = (kehadiran * 0.7) / 3.0;
-            double nilaiAkhir = rataNilai + nilaiAbsensi;
-            int tidakHadir = TOTAL_HARI - kehadiran;
-
-            String rekomendasi;
-            if (nilaiAkhir >= 85 && tidakHadir <= 2) {
-                rekomendasi = "Siswa Berprestasi";
-            } else if (nilaiAkhir >= 70 && tidakHadir <= 5) {
-                rekomendasi = "Siswa Berbakat";
-            } else if (tidakHadir > 5) {
-                rekomendasi = "Kurang Presensi";
-            } else {
-                rekomendasi = "Perlu Pendampingan";
+        try {
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data rekomendasi tidak dapat dimuat.");
+                return;
             }
+            
+            pst = con.prepareStatement(sql);
+            rs = pst.executeQuery();
 
-            model.addRow(new Object[]{
-                nomor++,  // Nomor urut
-                nama,
-                nis,
-                kelas,
-                rekomendasi
-            });
+            int nomor = 1; // Inisialisasi nomor urut
+
+            while (rs.next()) {
+                // Ambil data dari ResultSet
+                int idanggota = rs.getInt("idanggota");
+                String nama = rs.getString("nama");
+                String nis = rs.getString("nis");
+                String kelas = rs.getString("kelas");
+                int kehadiran = rs.getInt("jumlahkehadiran");
+                double nilaiUH = rs.getDouble("nilaiUH");
+                double nilaiUTS = rs.getDouble("nilaiUTS");
+                double nilaiUAS = rs.getDouble("nilaiUAS");
+                double nilaiAkhirDB = rs.getDouble("nilaiAkhir"); // Ambil nilaiAkhir yang sudah dihitung di DB
+
+                int tidakHadir = TOTAL_HARI - kehadiran;
+
+                String rekomendasi;
+                // Logika rekomendasi berdasarkan nilai Akhir dan Ketidakhadiran
+                // Sesuaikan logika ini dengan AdminRules.java jika ada perbedaan
+                if (nilaiAkhirDB >= 85 && tidakHadir <= 2) {
+                    rekomendasi = "Siswa Berprestasi";
+                } else if (nilaiAkhirDB >= 70 && tidakHadir <= 5) {
+                    rekomendasi = "Siswa Berbakat";
+                } else if (tidakHadir > 5) {
+                    rekomendasi = "Kurang Presensi";
+                } else {
+                    rekomendasi = "Perlu Pendampingan";
+                }
+                
+                // --- Opsional: Simpan Rekomendasi ke Tabel 'rekomendasi' ---
+                // Jika Anda ingin rekomendasi yang dihasilkan secara otomatis ini disimpan ke tabel 'rekomendasi'
+                // Anda perlu membuat SQL INSERT di sini dan menangani idnilai, idabsen, idanggota
+                // berdasarkan data yang diambil dari rs.
+                // Ini akan menjadi query INSERT baru setelah perhitungan rekomendasi.
+                // PASTIKAN Anda memiliki ID nilai dan ID absen yang sesuai untuk siswa ini
+                // Karena query saat ini hanya mengambil data, bukan ID nilai/absen secara spesifik.
+                // Atau, bisa juga Anda tambahkan kolom di tabel rekomendasi untuk menyimpan nilaiAkhir/ketidakhadiran
+                // dan menghindari FK ke absen/nilai jika rekomendasi bersifat independen.
+
+                // Jika sudah ada tabel 'rekomendasi', Anda bisa melakukan INSERT/UPDATE di sini:
+                /*
+                try (PreparedStatement pstInsertRekom = con.prepareStatement(
+                        "INSERT INTO rekomendasi (idanggota, idnilai, idabsen, rekomendasi, tanggal_rekomendasi) VALUES (?, ?, ?, ?, CURRENT_DATE)" +
+                        "ON CONFLICT (idanggota, idnilai, idabsen) DO UPDATE SET rekomendasi = EXCLUDED.rekomendasi")) { // Contoh ON CONFLICT untuk PostgreSQL
+                    pstInsertRekom.setInt(1, idanggota);
+                    // Anda perlu mendapatkan idnilai dan idabsen dari query yang lebih kompleks di atas
+                    // atau dari kolom tersembunyi di model tabel jika sudah ada.
+                    // Untuk sementara ini saya biarkan sebagai komentar karena memerlukan detail lebih lanjut.
+                    // pstInsertRekom.setInt(2, idnilai_dari_db); 
+                    // pstInsertRekom.setInt(3, idabsen_dari_db);
+                    pstInsertRekom.setString(4, rekomendasi);
+                    pstInsertRekom.executeUpdate();
+                }
+                */
+
+                // Tambahkan baris ke model tabel tampilan
+                model.addRow(new Object[]{
+                    nomor++,                           // Nomor urut
+                    idanggota,                         // ID Anggota
+                    nama,
+                    nis,
+                    kelas,
+                    kehadiran,
+                    nilaiAkhirDB,                     // Nilai Akhir yang diambil dari DB
+                    // Tanggal Rekomendasi (jika disimpan di DB)
+                    // ... (perlu query terpisah ke tabel rekomendasi untuk mengambil tanggal jika rekomendasi sudah disimpan) ...
+                    null, // Placeholder untuk Tanggal Rekomendasi jika tidak disimpan
+                    rekomendasi
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data rekomendasi: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pst != null) pst.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-
-    } catch (SQLException e) {
-        JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-        e.printStackTrace();
     }
-}
-
- 
 
     /**
      * @param args the command line arguments
@@ -282,8 +359,8 @@ private int idAdmin;
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
            public void run() {
-                 // Simulasikan idPasien yang didapat dari hasil query atau input lainnya
-            int idAdmin = 123; // Ganti dengan nilai idPasien yang sesuai dari hasil query
+                 // Simulasikan idAdmin yang didapat dari hasil query atau input lainnya
+            int idAdmin = 1; // ID Admin dummy untuk pengujian mandiri
 
             AdminRekomendasi cpage = new AdminRekomendasi(idAdmin);
             cpage.setVisible(true);

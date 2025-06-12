@@ -17,6 +17,7 @@ public class AdminDashboard extends javax.swing.JFrame {
     public AdminDashboard(int idAdmin) {
         this.idAdmin = idAdmin;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
     }
 
     /**
@@ -45,6 +46,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Admin Dashboard"); // Menambahkan judul window
 
         btnLOGOUT.setBackground(new java.awt.Color(204, 204, 204));
         btnLOGOUT.setText("LOGOUT");
@@ -57,35 +59,37 @@ public class AdminDashboard extends javax.swing.JFrame {
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 36)); // NOI18N
         jLabel1.setText("Selamat Datang Admin!!!");
 
-        btnNILAI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.17 PM (1).jpeg")); // NOI18N
+        // Mengubah path icon menjadi relatif terhadap classpath
+        btnNILAI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.17 PM (1).jpeg"))); // NOI18N
         btnNILAI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnNILAIActionPerformed(evt);
             }
         });
 
-        btnDATASISWA.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.17 PM.jpeg")); // NOI18N
+        btnDATASISWA.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.17 PM.jpeg"))); // NOI18N
         btnDATASISWA.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDATASISWAActionPerformed(evt);
             }
         });
 
-        btnABSENSI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM.jpeg")); // NOI18N
+        btnABSENSI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM.jpeg"))); // NOI18N
         btnABSENSI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnABSENSIActionPerformed(evt);
             }
         });
 
-        btnREKOMENDASI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg")); // NOI18N
+        btnREKOMENDASI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg"))); // NOI18N
         btnREKOMENDASI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnREKOMENDASIActionPerformed(evt);
             }
         });
 
-        btnLAPORAN.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg")); // NOI18N
+        // Icon btnLAPORAN sama dengan btnREKOMENDASI, mungkin ada kesalahan di desain atau ini disengaja
+        btnLAPORAN.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg"))); // NOI18N
         btnLAPORAN.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLAPORANActionPerformed(evt);
@@ -107,7 +111,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel6.setText("LAPORAN");
 
-        btnForwardChaining.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-30 at 14.18.02_a364fdca.jpg")); // NOI18N
+        btnForwardChaining.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-30 at 14.18.02_a364fdca.jpg"))); // NOI18N
         btnForwardChaining.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnForwardChainingActionPerformed(evt);
@@ -214,49 +218,44 @@ public class AdminDashboard extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnLOGOUTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLOGOUTActionPerformed
-        // TODO add your handling code here:
+        // Clear UserSession saat logout
+        UserSession.clearSession(); // Menggunakan metode clearSession() yang baru ditambahkan
         dispose();
-        LoginAdmin guestPage = new LoginAdmin();
+        LoginAdmin guestPage = new LoginAdmin(); // Kembali ke LoginAdmin atau ke halaman pilihan Login
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnLOGOUTActionPerformed
 
     private void btnDATASISWAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDATASISWAActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDataSiswa guestPage = new AdminDataSiswa (idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnDATASISWAActionPerformed
 
     private void btnNILAIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNILAIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDataNilai guestPage = new AdminDataNilai (idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnNILAIActionPerformed
 
     private void btnABSENSIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnABSENSIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDataAbsensi guestPage = new AdminDataAbsensi (idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnABSENSIActionPerformed
 
     private void btnREKOMENDASIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnREKOMENDASIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminRekomendasi guestPage = new AdminRekomendasi (idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnREKOMENDASIActionPerformed
 
     private void btnLAPORANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLAPORANActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminLaporan guestPage = new AdminLaporan (idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnLAPORANActionPerformed
 
     private void btnForwardChainingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnForwardChainingActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminRules guestPage = new AdminRules (idAdmin);
         guestPage.setVisible(true);
@@ -292,7 +291,7 @@ public class AdminDashboard extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-           int idAdmin = 123;
+           int idAdmin = 123; // Nilai ID default hanya untuk tujuan pengujian main method
 
             AdminDashboard cpage = new AdminDashboard(idAdmin);
             cpage.setVisible(true);

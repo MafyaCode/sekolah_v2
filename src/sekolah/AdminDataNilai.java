@@ -3,23 +3,23 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// import java.awt.event.ActionEvent; // Duplikat
+// import java.awt.event.ActionListener; // Duplikat
+// import java.sql.*; // Duplikat, sudah ada import spesifik
 import java.util.HashMap;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -40,6 +40,8 @@ public class AdminDataNilai extends javax.swing.JFrame {
     public AdminDataNilai(int idAdmin) {
         this.idAdmin = idAdmin;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
+        loadTableData(); // Muat data awal saat frame dibuat
     }
 
     /**
@@ -73,6 +75,7 @@ public class AdminDataNilai extends javax.swing.JFrame {
         txt_UAS = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Admin Data Nilai"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("DATA NILAI");
@@ -85,19 +88,33 @@ public class AdminDataNilai extends javax.swing.JFrame {
                 {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "No", "Nama", "NIS", "Kelas", "Nilai UH", "Nilai UTS", "Nilai UAS", "Nilai Akhir"
+                "ID Nilai", "ID Anggota", "Nama", "NIS", "Kelas", "Nilai UH", "Nilai UTS", "Nilai UAS", "Nilai Akhir" // Menyesuaikan kolom
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, true, true, true, true, false // Memungkinkan edit nilai
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        // Menambahkan listener untuk mengisi form saat baris tabel diklik
+        tblDATANILAI.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblDATANILAIMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tblDATANILAI);
 
-        btnLIHATNILAI.setText("LIHAT NILAI");
+        btnLIHATNILAI.setText("REFRESH DATA"); // Mengubah teks
         btnLIHATNILAI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLIHATNILAIActionPerformed(evt);
             }
         });
 
-        btnUPDATE.setText("UPDATE");
+        btnUPDATE.setText("PERBARUI"); // Mengubah teks
         btnUPDATE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnUPDATEActionPerformed(evt);
@@ -110,6 +127,8 @@ public class AdminDataNilai extends javax.swing.JFrame {
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel3.setText("Id Anggota");
 
+        txt_idnilai.setEditable(false); // ID Nilai biasanya di-generate otomatis
+        
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel4.setText("Nilai Ulangan Harian");
 
@@ -252,233 +271,365 @@ public class AdminDataNilai extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDashboard guestPage = new AdminDashboard(idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
-    private void btnLIHATNILAIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATNILAIActionPerformed
-        // TODO add your handling code here:
-DefaultTableModel model = (DefaultTableModel) tblDATANILAI.getModel();
-// Clear any existing rows
-model.setRowCount(0);
-
-try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-     Statement stmt = con.createStatement();
-     ResultSet rs = stmt.executeQuery(
-            "SELECT n.idnilai, a.nama, a.nis, a.kelas, n.nilaiUH, " +
-            "n.nilaiUTS, n.nilaiUAS, n.nilaiAkhir " +
-            "FROM nilai n " +
-            "JOIN anggota a ON n.idanggota = a.idanggota")) {
-
-    // Iterate over the result set and add rows to the table
-    while (rs.next()) {
-        model.addRow(new Object[] {
-            rs.getString("idnilai"),        // No dari idanggota
-            rs.getString("nama"),           // Nama
-            rs.getString("nis"),            // NIS
-            rs.getString("kelas"),          // Kelas
-            rs.getDouble("nilaiUH"),         // Nilai UH
-            rs.getDouble("nilaiUTS"),        // Nilai UTS
-            rs.getDouble("nilaiUAS"),        // Nilai UAS
-            rs.getDouble("nilaiAkhir")       // Nilai Akhir
-        });
-    }
-} catch (SQLException e) {
-    JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-    e.printStackTrace();  // Optional: for debugging purposes
-}
-
-                    
-    }//GEN-LAST:event_btnLIHATNILAIActionPerformed
-
-    private void btnUPDATEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUPDATEActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
-    }//GEN-LAST:event_btnUPDATEActionPerformed
-
-    private void btnSIMPANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSIMPANActionPerformed
-        // TODO add your handling code here:
-        try {
-    String idnilai = txt_idnilai.getText().trim();
-    String idanggota = txt_idanggota.getText().trim();
-    double nilaiUH = Double.parseDouble(txt_UH.getText());
-    double nilaiUTS = Double.parseDouble(txt_UTS.getText());
-    double nilaiUAS = Double.parseDouble(txt_UAS.getText());
-
-    // Ambil nama, NIS, dan absen dari database
-    String nama = "";
-    String nis = "";
-    String kelas = "";
-    int absen = 0;
-
-    String sql = "SELECT a.nama, a.nis, a.kelas, ab.jumlahkehadiran " +
-                 "FROM anggota a " +
-                 "JOIN absen ab ON a.idanggota = ab.idanggota " +
-                 "WHERE a.idanggota = ?";
-
-    try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost/sekolah_smp", "root", "");
-         PreparedStatement pst = con.prepareStatement(sql)) {
-
-        pst.setString(1, idanggota);
-        ResultSet rs = pst.executeQuery();
-
-        if (rs.next()) {
-            nama = rs.getString("nama");
-            nis = rs.getString("nis");
-            kelas = rs.getString("kelas");
-            absen = rs.getInt("jumlahkehadiran");
-        } else {
-            JOptionPane.showMessageDialog(null, "ID Anggota atau data absen tidak ditemukan!");
+    private void tblDATANILAIMouseClicked(java.awt.event.MouseEvent evt) {                                      
+        int selectedRow = tblDATANILAI.getSelectedRow();
+        if (selectedRow == -1) {
             return;
         }
 
-        // Hitung nilai akhir
-        double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3;
-        double nilaiAkhir = rataNilai + ((absen * 0.7f) / 3);
+        DefaultTableModel model = (DefaultTableModel) tblDATANILAI.getModel();
 
-        // Simpan ke tabel nilai
-        String insertSQL = "INSERT INTO nilai (idnilai, idanggota, nilaiUH, nilaiUTS, nilaiUAS, nilaiAkhir) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement insertPst = con.prepareStatement(insertSQL)) {
-            insertPst.setString(1, idnilai);
-            insertPst.setString(2, idanggota);
-            insertPst.setDouble(3, nilaiUH);
-            insertPst.setDouble(4, nilaiUTS);
-            insertPst.setDouble(5, nilaiUAS);
-            insertPst.setDouble(6, nilaiAkhir);
-
-            insertPst.executeUpdate();
-            JOptionPane.showMessageDialog(null, "Nilai berhasil ditambahkan!");
-
-            // Tambahkan ke tabel tampilan
-            javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblDATANILAI.getModel();
-            int no = model.getRowCount() + 1;
-            model.addRow(new Object[]{
-                no, nama, nis, kelas, nilaiUH, nilaiUTS, nilaiUAS, nilaiAkhir
-            });
-
-            // Reset form
-            txt_idnilai.setText("");
-            txt_idanggota.setText("");
-            txt_UH.setText("");
-            txt_UTS.setText("");
-            txt_UAS.setText("");
-        }
+        txt_idnilai.setText(model.getValueAt(selectedRow, 0).toString()); // ID Nilai
+        txt_idanggota.setText(model.getValueAt(selectedRow, 1).toString()); // ID Anggota
+        txt_UH.setText(model.getValueAt(selectedRow, 5).toString()); // Nilai UH
+        txt_UTS.setText(model.getValueAt(selectedRow, 6).toString()); // Nilai UTS
+        txt_UAS.setText(model.getValueAt(selectedRow, 7).toString()); // Nilai UAS
     }
-} catch (Exception e) {
-    JOptionPane.showMessageDialog(null, "Gagal menyimpan nilai: " + e.getMessage());
-}
 
+    private void btnLIHATNILAIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATNILAIActionPerformed
+        loadTableData(); // Panggil metode untuk memuat ulang data
+    }//GEN-LAST:event_btnLIHATNILAIActionPerformed
+
+    private void btnUPDATEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUPDATEActionPerformed
+        updateNilaiData(); // Panggil metode untuk melakukan update
+    }//GEN-LAST:event_btnUPDATEActionPerformed
+
+    private void btnSIMPANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSIMPANActionPerformed
+        saveNilaiData(); // Panggil metode untuk menyimpan data
     }//GEN-LAST:event_btnSIMPANActionPerformed
 
     private void btnHAPUSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHAPUSActionPerformed
-        // TODO add your handling code here:
-        try {
-    int selectedRow = tblDATANILAI.getSelectedRow();
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(null, "Pilih data yang ingin dihapus!");
-        return;
-    }
-
-    String idanggota = tblDATANILAI.getValueAt(selectedRow, 0).toString();
-
-    int confirm = JOptionPane.showConfirmDialog(
-        null,
-        "Yakin ingin menghapus nilai untuk data ini?", "Konfirmasi",
-        JOptionPane.YES_NO_OPTION);
-
-    if (confirm == JOptionPane.YES_OPTION) {
-        String sql = "DELETE FROM nilai WHERE idanggota = ?";
-        
-        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost/sekolah_smp", "root", "");
-             PreparedStatement pst = con.prepareStatement(sql)) {
-
-            pst.setString(1, idanggota);
-            pst.executeUpdate();
-            
-            JOptionPane.showMessageDialog(null, "Data nilai berhasil dihapus!");
-            loadDataForm();
-        }
-    }
-} catch (SQLException e) {
-    JOptionPane.showMessageDialog(null, "Gagal menghapus nilai (SQL Error): " + e.getMessage());
-} catch (Exception e) {
-    JOptionPane.showMessageDialog(null, "Terjadi kesalahan: " + e.getMessage());
-}
-
+        deleteNilaiData(); // Panggil metode untuk menghapus data
     }//GEN-LAST:event_btnHAPUSActionPerformed
-   private void loadDataForm() {
-    DefaultTableModel model = (DefaultTableModel) tblDATANILAI.getModel();
-    int selectedRow = tblDATANILAI.getSelectedRow();
 
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(null, "Pilih baris data nilai yang ingin diperbarui.");
-        return;
-    }
+    // --- Metode Bantuan untuk Operasi Database ---
 
-    try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "")) {
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
+        DefaultTableModel model = (DefaultTableModel) tblDATANILAI.getModel();
+        model.setRowCount(0); // Bersihkan baris yang ada
 
-        int idnilai = Integer.parseInt(model.getValueAt(selectedRow, 0).toString()); // kolom 0 = idnilai
-        String nis = model.getValueAt(selectedRow, 2).toString(); // kolom 2 = NIS
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-        // Ambil idanggota berdasarkan NIS
-        int idanggota = 0;
-        try (PreparedStatement stmt = con.prepareStatement("SELECT idanggota FROM anggota WHERE nis = ?")) {
-            stmt.setString(1, nis);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                idanggota = rs.getInt("idanggota");
-            } else {
-                JOptionPane.showMessageDialog(null, "ID Anggota tidak ditemukan untuk NIS: " + nis);
+        try {
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
                 return;
             }
-        }
 
-        // Ambil jumlah kehadiran dari tabel absen berdasarkan idanggota
-        int jumlahHadir = 0;
-        try (PreparedStatement stmt = con.prepareStatement("SELECT jumlahkehadiran FROM absen WHERE idanggota = ?")) {
-            stmt.setInt(1, idanggota);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                jumlahHadir = rs.getInt("jumlahkehadiran");
+            // Query untuk mengambil data nilai beserta nama, NIS, dan kelas dari anggota
+            String sql = "SELECT n.idnilai, n.idanggota, a.nama, a.nis, a.kelas, " +
+                         "n.nilaiUH, n.nilaiUTS, n.nilaiUAS, n.nilaiAkhir " +
+                         "FROM nilai n JOIN anggota a ON n.idanggota = a.idanggota ORDER BY n.idnilai ASC";
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                model.addRow(new Object[] {
+                    rs.getInt("idnilai"),
+                    rs.getInt("idanggota"),
+                    rs.getString("nama"),
+                    rs.getString("nis"),
+                    rs.getString("kelas"),
+                    rs.getDouble("nilaiUH"),
+                    rs.getDouble("nilaiUTS"),
+                    rs.getDouble("nilaiUAS"),
+                    rs.getDouble("nilaiAkhir")
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data nilai: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
             }
         }
-
-        // Ambil nilai dari GUI
-        double nilaiUH = Double.parseDouble(model.getValueAt(selectedRow, 4).toString());
-        double nilaiUTS = Double.parseDouble(model.getValueAt(selectedRow, 5).toString());
-        double nilaiUAS = Double.parseDouble(model.getValueAt(selectedRow, 6).toString());
-
-        // Hitung nilai akhir
-        double nilaiRata = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
-        double nilaiAbsen = (0.7 * jumlahHadir) / 3.0;
-        double nilaiAkhir = nilaiRata + nilaiAbsen;
-
-        // Update ke tabel nilai berdasarkan idnilai
-        try (PreparedStatement pstmt = con.prepareStatement(
-            "UPDATE nilai SET nilaiUH = ?, nilaiUTS = ?, nilaiUAS = ?, nilaiAkhir = ? WHERE idnilai = ?")) {
-
-            pstmt.setDouble(1, nilaiUH);
-            pstmt.setDouble(2, nilaiUTS);
-            pstmt.setDouble(3, nilaiUAS);
-            pstmt.setDouble(4, nilaiAkhir);
-            pstmt.setInt(5, idnilai);
-
-            int rows = pstmt.executeUpdate();
-            if (rows > 0) {
-                model.setValueAt(nilaiAkhir, selectedRow, 7); // kolom 7 = Nilai Akhir
-                JOptionPane.showMessageDialog(null, "Nilai berhasil diperbarui.");
-            } else {
-                JOptionPane.showMessageDialog(null, "Gagal memperbarui nilai untuk ID Nilai: " + idnilai);
-            }
-        }
-
-    } catch (SQLException | NumberFormatException e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(null, "Terjadi kesalahan saat update nilai: " + e.getMessage());
     }
-}
+
+    // Metode untuk menyimpan data nilai baru
+    private void saveNilaiData() {
+        // String idnilai = txt_idnilai.getText().trim(); // Tidak perlu karena SERIAL
+        String idanggotaStr = txt_idanggota.getText().trim();
+        String nilaiUHStr = txt_UH.getText().trim();
+        String nilaiUTSStr = txt_UTS.getText().trim();
+        String nilaiUASStr = txt_UAS.getText().trim();
+
+        if (idanggotaStr.isEmpty() || nilaiUHStr.isEmpty() || nilaiUTSStr.isEmpty() || nilaiUASStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua kolom input nilai harus diisi.");
+            return;
+        }
+
+        Connection con = null;
+        PreparedStatement pstAnggota = null;
+        PreparedStatement insertPst = null;
+        PreparedStatement pstAbsen = null;
+        ResultSet rsAnggota = null;
+        ResultSet rsAbsen = null;
+
+        try {
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat disimpan.");
+                return;
+            }
+
+            int idanggota = Integer.parseInt(idanggotaStr);
+            double nilaiUH = Double.parseDouble(nilaiUHStr);
+            double nilaiUTS = Double.parseDouble(nilaiUTSStr);
+            double nilaiUAS = Double.parseDouble(nilaiUASStr);
+
+            // 1. Cek apakah idanggota valid dan ada
+            String sqlCheckAnggota = "SELECT nama, nis, kelas FROM anggota WHERE idanggota = ?";
+            pstAnggota = con.prepareStatement(sqlCheckAnggota);
+            pstAnggota.setInt(1, idanggota);
+            rsAnggota = pstAnggota.executeQuery();
+            
+            String nama = "";
+            String nis = "";
+            String kelas = "";
+            if (rsAnggota.next()) {
+                nama = rsAnggota.getString("nama");
+                nis = rsAnggota.getString("nis");
+                kelas = rsAnggota.getString("kelas");
+            } else {
+                JOptionPane.showMessageDialog(this, "ID Anggota tidak ditemukan. Silakan masukkan ID Anggota yang valid.");
+                return;
+            }
+
+            // 2. Ambil jumlah kehadiran dari tabel absen (jika diperlukan untuk nilai akhir)
+            int jumlahkehadiran = 0;
+            String sqlGetAbsen = "SELECT jumlahkehadiran FROM absen WHERE idanggota = ?";
+            pstAbsen = con.prepareStatement(sqlGetAbsen);
+            pstAbsen.setInt(1, idanggota);
+            rsAbsen = pstAbsen.executeQuery();
+            if (rsAbsen.next()) {
+                jumlahkehadiran = rsAbsen.getInt("jumlahkehadiran");
+            } else {
+                // Opsional: berikan pesan jika data absen tidak ada atau asumsikan 0
+                // JOptionPane.showMessageDialog(this, "Data absensi tidak ditemukan untuk ID Anggota ini. Nilai akhir mungkin tidak akurat.");
+            }
+
+            // 3. Hitung nilai akhir (pastikan rumus ini sesuai dengan kebutuhan Anda)
+            // Rumus dari kode Anda sebelumnya: double nilaiAkhir = rataNilai + ((absen * 0.7f) / 3);
+            double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
+            double nilaiAbsenKontribusi = (jumlahkehadiran * 0.7) / 3.0; // Menggunakan 0.7f sebagai double
+            double nilaiAkhir = rataNilai + nilaiAbsenKontribusi;
+
+            // 4. Simpan ke tabel nilai (idnilai otomatis karena SERIAL)
+            String insertSQL = "INSERT INTO nilai (idanggota, nilaiUH, nilaiUTS, nilaiUAS, nilaiAkhir) VALUES (?, ?, ?, ?, ?)";
+            insertPst = con.prepareStatement(insertSQL);
+            insertPst.setInt(1, idanggota);
+            insertPst.setDouble(2, nilaiUH);
+            insertPst.setDouble(3, nilaiUTS);
+            insertPst.setDouble(4, nilaiUAS);
+            insertPst.setDouble(5, nilaiAkhir);
+
+            insertPst.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Nilai berhasil ditambahkan!");
+
+            clearFormFields(); // Reset form
+            loadTableData(); // Muat ulang data tabel
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Input Nilai atau ID Anggota harus berupa angka.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menyimpan nilai (SQL Error): " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Tutup semua resource
+            try {
+                if (rsAnggota != null) rsAnggota.close();
+                if (pstAnggota != null) pstAnggota.close();
+                if (rsAbsen != null) rsAbsen.close();
+                if (pstAbsen != null) pstAbsen.close();
+                if (insertPst != null) insertPst.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    // Metode untuk menghapus data nilai
+    private void deleteNilaiData() {
+        int selectedRow = tblDATANILAI.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih data yang ingin dihapus dari tabel!");
+            return;
+        }
+
+        // Ambil idnilai dari kolom pertama tabel (kolom 0)
+        String idnilaiStr = tblDATANILAI.getValueAt(selectedRow, 0).toString();
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Yakin ingin menghapus nilai dengan ID " + idnilaiStr + "?", "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Connection con = null;
+            PreparedStatement pst = null;
+            try {
+                con = Koneksi.getConnection();
+                if (con == null) {
+                    JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dihapus.");
+                    return;
+                }
+
+                String sql = "DELETE FROM nilai WHERE idnilai = ?"; // Hapus berdasarkan idnilai
+                pst = con.prepareStatement(sql);
+                pst.setInt(1, Integer.parseInt(idnilaiStr));
+                
+                int rowsAffected = pst.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(this, "Data nilai berhasil dihapus!");
+                    loadTableData(); // Muat ulang data tabel
+                    clearFormFields(); // Bersihkan form
+                } else {
+                    JOptionPane.showMessageDialog(this, "Gagal menghapus data nilai. ID Nilai tidak ditemukan.");
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "ID Nilai tidak valid.");
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus nilai (SQL Error): " + e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (pst != null) pst.close();
+                    if (con != null) con.close();
+                } catch (SQLException ex) {
+                    System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Metode untuk memperbarui data nilai
+    private void updateNilaiData() {
+        int selectedRow = tblDATANILAI.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih baris yang ingin diperbarui di tabel.");
+            return;
+        }
+        
+        String idnilaiStr = txt_idnilai.getText().trim();
+        String idanggotaStr = txt_idanggota.getText().trim();
+        String nilaiUHStr = txt_UH.getText().trim();
+        String nilaiUTSStr = txt_UTS.getText().trim();
+        String nilaiUASStr = txt_UAS.getText().trim();
+
+        if (idnilaiStr.isEmpty() || idanggotaStr.isEmpty() || nilaiUHStr.isEmpty() || nilaiUTSStr.isEmpty() || nilaiUASStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua kolom input nilai harus diisi untuk pembaruan.");
+            return;
+        }
+        
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        PreparedStatement pstAbsen = null;
+        ResultSet rsAbsen = null;
+
+        try {
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat diperbarui.");
+                return;
+            }
+
+            int idnilai = Integer.parseInt(idnilaiStr);
+            int idanggota = Integer.parseInt(idanggotaStr);
+            double nilaiUH = Double.parseDouble(nilaiUHStr);
+            double nilaiUTS = Double.parseDouble(nilaiUTSStr);
+            double nilaiUAS = Double.parseDouble(nilaiUASStr);
+
+            // Ambil jumlah kehadiran untuk perhitungan nilai akhir
+            int jumlahkehadiran = 0;
+            String sqlGetAbsen = "SELECT jumlahkehadiran FROM absen WHERE idanggota = ?";
+            pstAbsen = con.prepareStatement(sqlGetAbsen);
+            pstAbsen.setInt(1, idanggota);
+            rsAbsen = pstAbsen.executeQuery();
+            if (rsAbsen.next()) {
+                jumlahkehadiran = rsAbsen.getInt("jumlahkehadiran");
+            }
+
+            // Hitung nilai akhir yang diperbarui
+            double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
+            double nilaiAbsenKontribusi = (jumlahkehadiran * 0.7) / 3.0;
+            double nilaiAkhir = rataNilai + nilaiAbsenKontribusi;
+
+            // Query UPDATE. Pastikan nama kolom sesuai DB PostgreSQL
+            String sql = "UPDATE nilai SET idanggota = ?, nilaiUH = ?, nilaiUTS = ?, nilaiUAS = ?, nilaiAkhir = ? WHERE idnilai = ?";
+            pstmt = con.prepareStatement(sql);
+            pstmt.setInt(1, idanggota);
+            pstmt.setDouble(2, nilaiUH);
+            pstmt.setDouble(3, nilaiUTS);
+            pstmt.setDouble(4, nilaiUAS);
+            pstmt.setDouble(5, nilaiAkhir);
+            pstmt.setInt(6, idnilai); // WHERE clause
+            
+            int rowsUpdated = pstmt.executeUpdate();
+            
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(this, "Data nilai berhasil diperbarui!");
+                loadTableData(); // Muat ulang data tabel
+                clearFormFields(); // Bersihkan form
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal memperbarui data nilai. ID Nilai tidak ditemukan.");
+            }
+            
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Input Nilai atau ID harus berupa angka.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memperbarui nilai (SQL Error): " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Tutup semua resource
+            try {
+                if (rsAbsen != null) rsAbsen.close();
+                if (pstAbsen != null) pstAbsen.close();
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    // Metode untuk membersihkan input form
+    private void clearFormFields() {
+        txt_idnilai.setText("");
+        txt_idanggota.setText("");
+        txt_UH.setText("");
+        txt_UTS.setText("");
+        txt_UAS.setText("");
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -509,7 +660,7 @@ try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/s
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-          int idAdmin = 123;
+          int idAdmin = 1; // ID Admin dummy untuk pengujian mandiri
 
             AdminDataNilai cpage = new AdminDataNilai(idAdmin);
             cpage.setVisible(true);

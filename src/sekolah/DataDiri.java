@@ -4,39 +4,36 @@
  */
 package sekolah;
 
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Date; // Untuk tipe data DATE
 import javax.swing.JOptionPane;
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// import javax.swing.*; // Sudah tercakup oleh import spesifik
+// import java.awt.event.ActionEvent; // Sudah tercakup oleh import spesifik
+// import java.awt.event.ActionListener; // Sudah tercakup oleh import spesifik
+// import java.sql.*; // Duplikat
+
 /**
  *
  * @author fitri
  */
 public class DataDiri extends javax.swing.JFrame {
     private int idanggota;
-    private Connection con;
+    // private Connection con; // Hapus ini, koneksi diambil dan ditutup per method
 
     /**
      * Creates new form DataDiri
      */
     public DataDiri(int idanggota) {
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
         this.idanggota = idanggota;
-        try {
-            
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-        } catch (ClassNotFoundException | SQLException e) {
-            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
+        // Tidak perlu koneksi di constructor
+        loadDataFormDatabase(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -66,34 +63,46 @@ public class DataDiri extends javax.swing.JFrame {
         text_kelas = new javax.swing.JFormattedTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Data Diri Siswa"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
         jLabel1.setText("NAMA");
 
+        text_nama.setEditable(false); // Tidak bisa di-edit
+        
         jLabel2.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
         jLabel2.setText("NIS");
 
+        text_NIS.setEditable(false); // Tidak bisa di-edit
+        
         jLabel3.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
         jLabel3.setText("TANGGAL LAHIR");
 
+        text_tanggal_lahir.setEditable(false); // Tidak bisa di-edit
+        text_tanggal_lahir.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.DateFormatter(new java.text.SimpleDateFormat("yyyy-MM-dd")))); // Format tanggal
+        
         jenisKelamin.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
         jenisKelamin.setText("JENIS KELAMIN");
 
         radioLaki.setText("Laki - Laki");
-
+        radioLaki.setEnabled(false); // Tidak bisa di-edit
+        
         radioPerempuan.setText("Perempuan");
+        radioPerempuan.setEnabled(false); // Tidak bisa di-edit
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
         jLabel5.setText("ALAMAT");
 
-        btnLIHATDATA.setText("LIHAT DATA");
+        text_alamat.setEditable(false); // Tidak bisa di-edit
+        
+        btnLIHATDATA.setText("REFRESH"); // Mengubah teks agar lebih umum
         btnLIHATDATA.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLIHATDATAActionPerformed(evt);
             }
         });
 
-        btnCLOSE.setText("CLOSE");
+        btnCLOSE.setText("KEMBALI"); // Mengubah teks agar lebih umum
         btnCLOSE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCLOSEActionPerformed(evt);
@@ -102,6 +111,9 @@ public class DataDiri extends javax.swing.JFrame {
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 3, 18)); // NOI18N
         jLabel6.setText("Kelas");
+
+        text_kelas.setEditable(false); // Tidak bisa di-edit
+        text_kelas.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("#0"))));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -196,49 +208,91 @@ public class DataDiri extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnCLOSEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCLOSEActionPerformed
-        // TODO add your handling code here:
         dispose();
         DataPage guestPage = new DataPage(idanggota);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnCLOSEActionPerformed
 
     private void btnLIHATDATAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATDATAActionPerformed
-        // TODO add your handling code here:
-        loadDataFormDatabase();
+        loadDataFormDatabase(); // Panggil metode untuk memuat ulang data
     }//GEN-LAST:event_btnLIHATDATAActionPerformed
     
     private void loadDataFormDatabase() {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
         try {
-        String query = "SELECT nama, nis, kelas, tanggallahir, jeniskelamin, alamat "
-                + "FROM anggota WHERE idanggota = ?";
-        
-        PreparedStatement pstmt = con.prepareStatement(query);
-        pstmt.setInt(1, idanggota);
-        ResultSet rs = pstmt.executeQuery();
-        
-        if (rs.next()) {
-            text_nama.setText(rs.getString("nama"));
-            text_NIS.setText(rs.getString("nis"));
-            text_kelas.setText(rs.getString("kelas"));
-            text_tanggal_lahir.setText(rs.getString("tanggallahir"));
-            text_alamat.setText(rs.getString("alamat"));
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
+                return;
+            }
+
+            // Query untuk mendapatkan data diri anggota
+            String query = "SELECT nama, nis, kelas, tanggal_lahir, jeniskelamin, alamat FROM anggota WHERE idanggota = ?";
             
-            String jk = rs.getString("jeniskelamin");
-            if (jk.equals("Laki-Laki")) {
+            pstmt = con.prepareStatement(query);
+            pstmt.setInt(1, idanggota);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                text_nama.setText(rs.getString("nama"));
+                text_NIS.setText(rs.getString("nis"));
+                text_kelas.setText(rs.getString("kelas"));
+                
+                // Ambil tanggal lahir sebagai Date dan format sesuai kebutuhan JFormattedTextField
+                Date tanggalLahirSql = rs.getDate("tanggal_lahir");
+                if (tanggalLahirSql != null) {
+                    text_tanggal_lahir.setText(tanggalLahirSql.toString()); // Format 'YYYY-MM-DD'
+                } else {
+                    text_tanggal_lahir.setText("");
+                }
+                
+                text_alamat.setText(rs.getString("alamat"));
+                
+                String jk = rs.getString("jeniskelamin");
+                if ("Laki-laki".equalsIgnoreCase(jk)) { // Gunakan equalsIgnoreCase untuk case-insensitivity
                     radioLaki.setSelected(true);
-                } else if (jk.equals("Perempuan")) {
+                    radioPerempuan.setSelected(false);
+                } else if ("Perempuan".equalsIgnoreCase(jk)) {
                     radioPerempuan.setSelected(true);
+                    radioLaki.setSelected(false);
+                } else {
+                    // Jika tidak ada pilihan atau nilai tidak sesuai
+                    radioLaki.setSelected(false);
+                    radioPerempuan.setSelected(false);
                 } 
-        } else {
-            JOptionPane.showMessageDialog(this, "Data tidak ditemukan." + idanggota);
-                }
-        rs.close();
-        pstmt.close();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat data:" +e.getMessage());
+            } else {
+                JOptionPane.showMessageDialog(this, "Data diri tidak ditemukan untuk ID anggota: " + idanggota);
+                // Bersihkan field jika data tidak ditemukan
+                text_nama.setText("");
+                text_NIS.setText("");
+                text_kelas.setText("");
+                text_tanggal_lahir.setText("");
+                text_alamat.setText("");
+                radioLaki.setSelected(false);
+                radioPerempuan.setSelected(false);
+            }
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat data diri: " + e.getMessage());
             e.printStackTrace();
-                }
+        } catch (Exception e) { // Tangkap Exception umum untuk kesalahan tak terduga
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan tak terduga: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Pastikan semua resource ditutup di blok finally
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
+    }
     /**
      * @param args the command line arguments
      */
@@ -270,12 +324,11 @@ public class DataDiri extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
            public void run() {
-                int idAnggota = 1; // Ganti dengan nilai idPasien yang sesuai dari hasil query
+                int idAnggota = 1; // ID Anggota dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
             DataDiri cpage = new DataDiri(idAnggota);
-            cpage.setVisible(true);; // Menampilkan halaman Guest
+            cpage.setVisible(true);
                }
         });
-   
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

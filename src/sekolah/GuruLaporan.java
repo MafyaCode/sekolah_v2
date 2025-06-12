@@ -3,23 +3,23 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
+// import java.sql.*; // Duplikat
 import java.util.HashMap;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -39,6 +39,8 @@ public class GuruLaporan extends javax.swing.JFrame {
     public GuruLaporan(int idGuru) {
         this.idGuru = idGuru;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
+        loadTableData(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -62,6 +64,7 @@ public class GuruLaporan extends javax.swing.JFrame {
         jLabel1.setText("Laporan");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Guru Laporan"); // Menambahkan judul window
 
         btnKEMBALI.setText("KEMBALI");
         btnKEMBALI.addActionListener(new java.awt.event.ActionListener() {
@@ -75,18 +78,26 @@ public class GuruLaporan extends javax.swing.JFrame {
 
         tblDATALAPORAN.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null, null}, // Menambahkan kolom internal ID
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "No", "Nama", "NIS", "Kelas", "Laporan"
+                "No", "ID Anggota", "Nama", "NIS", "Kelas", "Hadir", "Nilai UH", "Nilai UTS", "Nilai UAS", "Laporan"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblDATALAPORAN);
 
-        btnLAPORAN.setText("LIHAT LAPORAN");
+        btnLAPORAN.setText("REFRESH LAPORAN"); // Mengubah teks
         btnLAPORAN.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLAPORANActionPerformed(evt);
@@ -144,76 +155,103 @@ public class GuruLaporan extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruDashboard guestPage = new GuruDashboard(idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnLAPORANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLAPORANActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        loadTableData(); // Panggil metode untuk memuat ulang data
     }//GEN-LAST:event_btnLAPORANActionPerformed
-    private void loadDataForm() {
-    DefaultTableModel model = (DefaultTableModel) tblDATALAPORAN.getModel();
-    model.setRowCount(0);
 
-    String sql = "SELECT a.nama, a.nis, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS " +
-                 "FROM anggota a " +
-                 "JOIN absen ab ON a.idanggota = ab.idanggota " +
-                 "JOIN nilai n ON a.idanggota = n.idanggota";
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
+        DefaultTableModel model = (DefaultTableModel) tblDATALAPORAN.getModel();
+        model.setRowCount(0); // Bersihkan baris yang ada
 
-    final int TOTAL_HARI = 30;
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
 
-    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-         PreparedStatement pst = conn.prepareStatement(sql);
-         ResultSet rs = pst.executeQuery()) {
+        String sql = "SELECT a.idanggota, a.nama, a.nis, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS " +
+                     "FROM anggota a " +
+                     "JOIN absen ab ON a.idanggota = ab.idanggota " +
+                     "JOIN nilai n ON a.idanggota = n.idanggota ORDER BY a.idanggota ASC";
 
-        int nomor = 1;
+        final int TOTAL_HARI = 30;
 
-        while (rs.next()) {
-            String nama = rs.getString("nama");
-            String nis = rs.getString("nis");
-            String kelas = rs.getString("kelas");
-            int kehadiran = rs.getInt("jumlahkehadiran");
-            double nilaiUH = rs.getDouble("nilaiUH");
-            double nilaiUTS = rs.getDouble("nilaiUTS");
-            double nilaiUAS = rs.getDouble("nilaiUAS");
-
-            double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
-            double nilaiAbsensiPercent = (kehadiran * 100.0) / TOTAL_HARI;
-            int absensiTidakMasuk = TOTAL_HARI - kehadiran;
-
-            double nilaiAkhir = rataNilai; // bisa ditambah bobot absensi kalau perlu
-
-            // Buat laporan string sesuai logika yang kamu inginkan
-            StringBuilder laporan = new StringBuilder();
-
-            if (nilaiAkhir < 70) {
-                laporan.append("Nilai Rendah. ");
+        try {
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data laporan tidak dapat dimuat.");
+                return;
             }
-            if (absensiTidakMasuk > 5) {
-                laporan.append("Sering tidak hadir.");
+            
+            pst = con.prepareStatement(sql);
+            rs = pst.executeQuery();
+
+            int nomor = 1; // Inisialisasi nomor urut
+
+            while (rs.next()) {
+                String nama = rs.getString("nama");
+                String nis = rs.getString("nis");
+                String kelas = rs.getString("kelas");
+                int kehadiran = rs.getInt("jumlahkehadiran");
+                double nilaiUH = rs.getDouble("nilaiUH");
+                double nilaiUTS = rs.getDouble("nilaiUTS");
+                double nilaiUAS = rs.getDouble("nilaiUAS");
+
+                double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
+                // Asumsi nilaiAbsensiPercent di sini adalah persentase kehadiran, bukan kontribusi ke nilai akhir
+                // double nilaiAbsensiPercent = (kehadiran * 100.0) / TOTAL_HARI; // Tidak digunakan untuk laporan
+                int absensiTidakMasuk = TOTAL_HARI - kehadiran;
+
+                double nilaiAkhir = rataNilai; // Bisa ditambah bobot absensi jika diperlukan
+                // Jika ingin menggunakan nilaiAkhir dari database, Anda perlu mengambilnya dari JOIN ke tabel nilai juga
+                // n.nilaiAkhir
+
+                // Buat laporan string sesuai logika yang kamu inginkan
+                StringBuilder laporan = new StringBuilder();
+
+                if (nilaiAkhir < 70) {
+                    laporan.append("Nilai Rendah. ");
+                }
+                if (absensiTidakMasuk > 5) {
+                    laporan.append("Sering tidak hadir.");
+                }
+
+                if (laporan.length() == 0) {
+                    laporan.append("Tidak ada masalah.");
+                }
+
+                model.addRow(new Object[]{
+                    nomor++,
+                    rs.getInt("idanggota"), // ID Anggota (disimpan tapi mungkin tersembunyi)
+                    nama,
+                    nis,
+                    kelas,
+                    kehadiran,
+                    nilaiUH,
+                    nilaiUTS,
+                    nilaiUAS,
+                    laporan.toString()
+                });
             }
 
-            if (laporan.length() == 0) {
-                laporan.append("Tidak ada masalah.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data laporan: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pst != null) pst.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
             }
-
-            model.addRow(new Object[]{
-                nomor++,
-                nama,
-                nis,
-                kelas,
-                laporan.toString()
-            });
         }
-
-    } catch (SQLException e) {
-        JOptionPane.showMessageDialog(this, "Gagal memuat data laporan: " + e.getMessage());
-        e.printStackTrace();
     }
-}
     /**
      * @param args the command line arguments
      */
@@ -244,7 +282,7 @@ public class GuruLaporan extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-          int idGuru = 123;
+          int idGuru = 1; // ID Guru dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
 
             GuruLaporan cpage = new GuruLaporan(idGuru);
             cpage.setVisible(true);

@@ -4,16 +4,18 @@
  */
 package sekolah;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+// Import yang tidak diperlukan bisa dihapus karena sudah menggunakan Koneksi.java
+// import java.sql.Connection;
+// import java.sql.DriverManager;
+// import java.sql.PreparedStatement;
+// import java.sql.ResultSet;
+// import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// import javax.swing.*; // Sudah tercakup oleh import lain
+// import java.awt.event.ActionEvent; // Sudah tercakup oleh import lain
+// import java.awt.event.ActionListener; // Sudah tercakup oleh import lain
+// import java.sql.*; // Sudah tercakup oleh import lain
+
 /**
  *
  * @author fitri
@@ -25,6 +27,7 @@ public class Login extends javax.swing.JFrame {
      */
     public Login() {
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
     }
 
     /**
@@ -47,27 +50,29 @@ public class Login extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Pilihan Login"); // Menambahkan judul window
 
         jPanel1.setBackground(new java.awt.Color(204, 204, 204));
 
         jLabel1.setFont(new java.awt.Font("STLiti", 0, 36)); // NOI18N
         jLabel1.setText("SMP Kartika XI-3 Jakarta");
 
-        siswa.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\OneDrive\\Dokumen\\NetBeansProjects\\sekolah\\WhatsApp Image 2025-05-09 at 07.47.19_ec2dbea4.jpg")); // NOI18N
+        // Mengubah path icon menjadi relatif terhadap classpath
+        siswa.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-09 at 07.47.19_ec2dbea4.jpg"))); // NOI18N
         siswa.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 siswaActionPerformed(evt);
             }
         });
 
-        guru.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\OneDrive\\Dokumen\\NetBeansProjects\\sekolah\\WhatsApp Image 2025-05-09 at 07.47.19_a6f79644.jpg")); // NOI18N
+        guru.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-09 at 07.47.19_a6f79644.jpg"))); // NOI18N
         guru.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 guruActionPerformed(evt);
             }
         });
 
-        admin.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\OneDrive\\Dokumen\\NetBeansProjects\\sekolah\\WhatsApp Image 2025-05-09 at 07.47.20_02eb9e6e.jpg")); // NOI18N
+        admin.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-09 at 07.47.20_02eb9e6e.jpg"))); // NOI18N
         admin.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 adminActionPerformed(evt);
@@ -149,19 +154,19 @@ public class Login extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void siswaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_siswaActionPerformed
-        dispose();
+        this.dispose();
         LoginSiswa guestPage = new LoginSiswa();
         guestPage.setVisible(true);
     }//GEN-LAST:event_siswaActionPerformed
 
     private void guruActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_guruActionPerformed
-        dispose(); 
+        this.dispose(); 
         LoginGuru guestPage = new LoginGuru();
         guestPage.setVisible(true);
     }//GEN-LAST:event_guruActionPerformed
 
     private void adminActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_adminActionPerformed
-        dispose(); // Menutup jendela login
+        this.dispose(); // Menutup jendela login
         LoginAdmin guestPage = new LoginAdmin();
         guestPage.setVisible(true);
     }//GEN-LAST:event_adminActionPerformed
@@ -209,6 +214,7 @@ public class Login extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JButton siswa;
     // End of variables declaration//GEN-END:variables

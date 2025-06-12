@@ -3,23 +3,23 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
+// import java.sql.*; // Duplikat
 import java.util.HashMap;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -40,6 +40,8 @@ public class GuruDataAbsensi extends javax.swing.JFrame {
     public GuruDataAbsensi(int idGuru) {
         this.idGuru = idGuru;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
+        loadTableData(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -59,6 +61,7 @@ public class GuruDataAbsensi extends javax.swing.JFrame {
         btnLIHATABSENSI = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Guru Data Absensi"); // Menambahkan judul window
 
         btnKEMBALI.setText("KEMBALI");
         btnKEMBALI.addActionListener(new java.awt.event.ActionListener() {
@@ -78,12 +81,20 @@ public class GuruDataAbsensi extends javax.swing.JFrame {
                 {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "No", "Nama", "NIS", "Kelas", "Hadir", "Alfa", "Sakit", "Izin"
+                "No", "Nama", "NIS", "Kelas", "Hadir", "Sakit", "Izin", "ID Anggota" // Menyesuaikan dengan kolom DB
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false // Semua kolom tidak bisa diedit untuk tampilan guru
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblABSENSI);
 
-        btnLIHATABSENSI.setText("LIHAT ABSENSI");
+        btnLIHATABSENSI.setText("REFRESH DATA"); // Mengubah teks
         btnLIHATABSENSI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLIHATABSENSIActionPerformed(evt);
@@ -141,46 +152,67 @@ public class GuruDataAbsensi extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruDashboard guestPage = new GuruDashboard(idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnLIHATABSENSIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATABSENSIActionPerformed
-        // TODO add your handling code here:
+        loadTableData(); // Panggil metode untuk memuat ulang data
+    }//GEN-LAST:event_btnLIHATABSENSIActionPerformed
+
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
         DefaultTableModel model = (DefaultTableModel) tblABSENSI.getModel();
-        // Clear any existing rows
-        model.setRowCount(0);
+        model.setRowCount(0); // Bersihkan baris yang ada
 
-        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(
-                "SELECT a.idanggota, a.nama, a.nis, a.kelas, ab.jumlahkehadiran, ab.jumlahalfa, ab.jumlahsakit, ab.jumlahizin " +
-                "FROM absen ab " +
-                "JOIN anggota a ON ab.idanggota = a.idanggota")) {
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
 
-            // Initialize a counter for the "No" column
-            int no = 1;
+        try {
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
+                return;
+            }
 
-            // Iterate over the result set and add rows to the table
+            // JOIN dengan tabel anggota untuk mendapatkan nama, NIS, dan kelas
+            // Pastikan nama kolom 'jumlahalfa' di database adalah 'jumlahlahsakit'
+            String sql = "SELECT ab.idanggota, a.nama, a.nis, a.kelas, " +
+                         "ab.jumlahkehadiran, ab.jumlahlahsakit, ab.jumlahizin " + // Gunakan jumlahlahsakit
+                         "FROM absen ab JOIN anggota a ON ab.idanggota = a.idanggota ORDER BY ab.idanggota ASC";
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(sql);
+
+            int no = 1; // Inisialisasi nomor urut
+
             while (rs.next()) {
                 model.addRow(new Object[]{
                     no++,                              // No
                     rs.getString("nama"),              // Nama
                     rs.getString("nis"),               // NIS
                     rs.getString("kelas"),             // Kelas
-                    rs.getInt("jumlahkehadiran"),      // Kehadiran
-                    rs.getInt("jumlahalfa"),           // Alfa
-                    rs.getInt("jumlahsakit"),          // Sakit
-                    rs.getInt("jumlahizin")            // Izin
+                    rs.getInt("jumlahkehadiran"),      // Hadir
+                    rs.getInt("jumlahlahsakit"),       // Sakit (sesuai DB)
+                    rs.getInt("jumlahizin"),           // Izin
+                    rs.getInt("idanggota")             // ID Anggota (disimpan tapi mungkin tersembunyi)
                 });
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-            e.printStackTrace();  // Optional: for debugging purposes
+            JOptionPane.showMessageDialog(this, "Gagal memuat data absensi: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-    }//GEN-LAST:event_btnLIHATABSENSIActionPerformed
+    }
 
     /**
      * @param args the command line arguments
@@ -212,7 +244,7 @@ public class GuruDataAbsensi extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
              public void run() {
-          int idGuru = 123;
+          int idGuru = 1; // ID Guru dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
 
             GuruDataAbsensi cpage = new GuruDataAbsensi(idGuru);
             cpage.setVisible(true);

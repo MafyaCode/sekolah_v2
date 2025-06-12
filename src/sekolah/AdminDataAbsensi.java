@@ -3,23 +3,25 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
+
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
+// import javax.swing.JOptionPane; // Duplikat
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// import java.awt.event.ActionEvent; // Duplikat
+// import java.awt.event.ActionListener; // Duplikat
+// import java.sql.*; // Duplikat, sudah ada import spesifik
 import java.util.HashMap;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -38,8 +40,11 @@ public class AdminDataAbsensi extends javax.swing.JFrame {
      * Creates new form AdminDataAbsensi
      */
     public AdminDataAbsensi(int idAdmin) {
-         this.idAdmin = idAdmin;
+        this.idAdmin = idAdmin;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
+        // Memuat data awal saat frame dibuat (opsional, tapi disarankan)
+        loadTableData(); 
     }
 
     /**
@@ -74,6 +79,7 @@ public class AdminDataAbsensi extends javax.swing.JFrame {
         btnSIMPAN = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Admin Data Absensi"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("DATA ABSENSI");
@@ -93,19 +99,33 @@ public class AdminDataAbsensi extends javax.swing.JFrame {
                 {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "No", "Nama", "NIS", "Kelas", "Hadir", "Alfa", "Sakit", "Izin"
+                "ID Absen", "ID Anggota", "Nama", "NIS", "Kelas", "Hadir", "Sakit", "Izin" // Menyesuaikan dengan kolom DB
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, true, true, true, true // Memungkinkan edit di kolom jumlah
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        // Menambahkan listener untuk mengisi form saat baris tabel diklik
+        tblABSENSI.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblABSENSIMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tblABSENSI);
 
-        btnLIHATABSENSI.setText("LIHAT ABSENSI");
+        btnLIHATABSENSI.setText("REFRESH DATA"); // Mengubah teks agar lebih jelas
         btnLIHATABSENSI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLIHATABSENSIActionPerformed(evt);
             }
         });
 
-        btnUPDATE.setText("UPDATE");
+        btnUPDATE.setText("PERBARUI"); // Mengubah teks agar lebih jelas
         btnUPDATE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnUPDATEActionPerformed(evt);
@@ -125,11 +145,18 @@ public class AdminDataAbsensi extends javax.swing.JFrame {
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel3.setText("Id Anggota");
 
+        txt_idabsen.setEditable(false); // ID Absen biasanya di-generate otomatis
+        txt_idabsen.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txt_idabsenActionPerformed(evt);
+            }
+        });
+
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel4.setText("Hadir");
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel5.setText("Alfa");
+        jLabel5.setText("Alfa"); // Ini akan diubah untuk 'Sakit' nanti jika diperlukan
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel6.setText("Sakit");
@@ -254,211 +281,325 @@ public class AdminDataAbsensi extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnLIHATABSENSIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATABSENSIActionPerformed
-       // TODO add your handling code here:
-    DefaultTableModel model = (DefaultTableModel) tblABSENSI.getModel();
-    // Clear any existing rows
-    model.setRowCount(0);
-
-    try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-     Statement stmt = con.createStatement();
-     ResultSet rs = stmt.executeQuery(
-            "SELECT a.idanggota, a.nama, a.nis, a.kelas, ab.jumlahkehadiran, ab.jumlahalfa, ab.jumlahsakit, ab.jumlahizin " +
-            "FROM absen ab " +
-            "JOIN anggota a ON ab.idanggota = a.idanggota")) {
-
-    // Initialize a counter for the "No" column
-    int no = 1;
-
-    // Iterate over the result set and add rows to the table
-    while (rs.next()) {
-                model.addRow(new Object[]{
-                        no++,                              // No
-                        rs.getString("nama"),              // Nama
-                        rs.getString("nis"),               // NIS
-                        rs.getString("kelas"),             // Kelas
-                        rs.getInt("jumlahkehadiran"),      // Kehadiran
-                        rs.getInt("jumlahalfa"),           // Alfa
-                        rs.getInt("jumlahsakit"),          // Sakit
-                        rs.getInt("jumlahizin")            // Izin
-                });
-            }
-} catch (SQLException e) {
-    JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-    e.printStackTrace();  // Optional: for debugging purposes
-}
-
+       loadTableData(); // Panggil metode untuk memuat ulang data tabel
     }//GEN-LAST:event_btnLIHATABSENSIActionPerformed
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDashboard guestPage = new AdminDashboard(idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
+    private void tblABSENSIMouseClicked(java.awt.event.MouseEvent evt) {                                      
+        // Mendapatkan baris yang dipilih
+        int selectedRow = tblABSENSI.getSelectedRow();
+        if (selectedRow == -1) {
+            return; // Tidak ada baris yang dipilih
+        }
+
+        DefaultTableModel model = (DefaultTableModel) tblABSENSI.getModel();
+
+        // Mengisi JTextField dengan data dari baris yang dipilih
+        txt_idabsen.setText(model.getValueAt(selectedRow, 0).toString()); // Kolom 'ID Absen'
+        txt_idanggota.setText(model.getValueAt(selectedRow, 1).toString()); // Kolom 'ID Anggota'
+        txt_jumlahkehadiran.setText(model.getValueAt(selectedRow, 5).toString()); // Kolom 'Hadir'
+        txt_jumlahalfa.setText(model.getValueAt(selectedRow, 6).toString()); // Kolom 'Sakit' (di database Anda jumlahlahsakit)
+        txt_jumlahsakit.setText(model.getValueAt(selectedRow, 7).toString()); // Kolom 'Izin' (di database Anda jumlahizin)
+        txt_jumlahizin.setText(model.getValueAt(selectedRow, 7).toString()); // Kolom 'Izin' (ini duplikat jika tidak ada kolom alfa)
+    }
+
     private void btnUPDATEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUPDATEActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        updateAbsensiData(); // Panggil metode untuk melakukan update
     }//GEN-LAST:event_btnUPDATEActionPerformed
 
     private void btnSIMPANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSIMPANActionPerformed
-        // TODO add your handling code here:
-        try {
-    // Ambil data dari form
-    String idabsen = txt_idabsen.getText();
-    String idanggota = txt_idanggota.getText();
-    String jumlahHadir = txt_jumlahkehadiran.getText();
-    String jumlahAlfa = txt_jumlahalfa.getText();
-    String jumlahSakit = txt_jumlahsakit.getText();
-    String jumlahIzin = txt_jumlahizin.getText();
-
-    // Ambil data nama dan NIS berdasarkan idanggota
-    Connection con = DriverManager.getConnection("jdbc:mysql://localhost/sekolah_smp", "root", "");
-    String sqlAnggota = "SELECT nama, nis, kelas FROM anggota WHERE idanggota = ?";
-    PreparedStatement pstAnggota = con.prepareStatement(sqlAnggota);
-    pstAnggota.setString(1, idanggota);
-    ResultSet rs = pstAnggota.executeQuery();
-    
-    String nama = "";
-    String nis = "";
-    String kelas = "";
-    if (rs.next()) {
-        nama = rs.getString("nama");
-        nis = rs.getString("nis");
-        kelas = rs.getString("kelas");
-    } else {
-        JOptionPane.showMessageDialog(null, "Data tidak ditemukan!");
-        return;
-    }
-
-    // SQL untuk menyimpan data absensi
-    String sqlAbsen = "INSERT INTO absen (idabsen, idanggota, jumlahkehadiran, jumlahalfa, jumlahsakit, jumlahizin) VALUES (?, ?, ?, ?, ?, ?)";
-    PreparedStatement pstAbsen = con.prepareStatement(sqlAbsen);
-    pstAbsen.setString(1, idabsen);
-    pstAbsen.setString(2, idanggota);
-    pstAbsen.setString(3, jumlahHadir);
-    pstAbsen.setString(4, jumlahAlfa);
-    pstAbsen.setString(5, jumlahSakit);
-    pstAbsen.setString(6, jumlahIzin);
-    pstAbsen.executeUpdate();
-
-    // Menampilkan data di tabel tblABSENSI
-    javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblABSENSI.getModel();
-    int no = model.getRowCount() + 1;
-    model.addRow(new Object[]{
-        no, nama, nis, kelas, jumlahHadir, jumlahAlfa, jumlahSakit, jumlahIzin
-    });
-
-    // Mengosongkan form setelah data disimpan
-    txt_idabsen.setText("");
-    txt_idanggota.setText("");
-    txt_jumlahkehadiran.setText("");
-    txt_jumlahalfa.setText("");
-    txt_jumlahsakit.setText("");
-    txt_jumlahizin.setText("");
-
-    JOptionPane.showMessageDialog(null, "Data absensi berhasil disimpan!");
-
-    // Tutup koneksi
-    pstAbsen.close();
-    pstAnggota.close();
-    con.close();
-} catch (Exception e) {
-    JOptionPane.showMessageDialog(null, "Gagal menyimpan data absensi: " + e.getMessage());
-}
-
+        saveAbsensiData(); // Panggil metode untuk menyimpan data
     }//GEN-LAST:event_btnSIMPANActionPerformed
 
     private void btnHAPUSActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHAPUSActionPerformed
+        deleteAbsensiData(); // Panggil metode untuk menghapus data
+    }//GEN-LAST:event_btnHAPUSActionPerformed
+
+    private void txt_idabsenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_idabsenActionPerformed
         // TODO add your handling code here:
+    }//GEN-LAST:event_txt_idabsenActionPerformed
+
+    // --- Metode Bantuan untuk Operasi Database ---
+
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
+        DefaultTableModel model = (DefaultTableModel) tblABSENSI.getModel();
+        model.setRowCount(0); // Bersihkan baris yang ada
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
         try {
-    int selectedRow = tblABSENSI.getSelectedRow();
-    if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(null, "Pilih data yang ingin dihapus!");
-        return;
-    }
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
+                return;
+            }
 
-    String idanggota = tblABSENSI.getValueAt(selectedRow, 0).toString();
+            // JOIN dengan tabel anggota untuk mendapatkan nama, NIS, dan kelas
+            // Pastikan nama kolom 'jumlahalfa' di database adalah 'jumlahlahsakit' jika itu yang Anda maksud
+            String sql = "SELECT ab.idabsen, ab.idanggota, a.nama, a.nis, a.kelas, " +
+                         "ab.jumlahkehadiran, ab.jumlahlahsakit, ab.jumlahizin " + // Gunakan jumlahlahsakit
+                         "FROM absen ab JOIN anggota a ON ab.idanggota = a.idanggota ORDER BY ab.idabsen ASC";
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(sql);
 
-    int confirm = JOptionPane.showConfirmDialog(
-        null,
-        "Yakin ingin menghapus absen untuk data ini?", "Konfirmasi",
-        JOptionPane.YES_NO_OPTION);
-
-    if (confirm == JOptionPane.YES_OPTION) {
-        String sql = "DELETE FROM absen WHERE idanggota = ?";
-        
-        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost/sekolah_smp", "root", "");
-             PreparedStatement pst = con.prepareStatement(sql)) {
-
-            pst.setString(1, idanggota);
-            pst.executeUpdate();
-            
-            JOptionPane.showMessageDialog(null, "Data absen berhasil dihapus!");
-            loadDataForm();
+            while (rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getInt("idabsen"),          // ID Absen
+                    rs.getInt("idanggota"),        // ID Anggota
+                    rs.getString("nama"),          // Nama Siswa
+                    rs.getString("nis"),           // NIS Siswa
+                    rs.getString("kelas"),         // Kelas Siswa
+                    rs.getInt("jumlahkehadiran"),  // Hadir
+                    rs.getInt("jumlahlahsakit"),   // Sakit (seperti di DB)
+                    rs.getInt("jumlahizin")        // Izin
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data absensi: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
     }
-} catch (SQLException e) {
-    JOptionPane.showMessageDialog(null, "Gagal menghapus absen (SQL Error): " + e.getMessage());
-} catch (Exception e) {
-    JOptionPane.showMessageDialog(null, "Terjadi kesalahan: " + e.getMessage());
-}
-    }//GEN-LAST:event_btnHAPUSActionPerformed
-    private void loadDataForm() {
-        DefaultTableModel model = (DefaultTableModel) tblABSENSI.getModel();
+    
+    // Metode untuk menyimpan data absensi baru
+    private void saveAbsensiData() {
+        // ID Absen (txt_idabsen) tidak perlu diambil dari form karena SERIAL
+        // String idabsen = txt_idabsen.getText().trim();
+        String idanggotaStr = txt_idanggota.getText().trim();
+        String jumlahHadirStr = txt_jumlahkehadiran.getText().trim();
+        String jumlahAlfaStr = txt_jumlahalfa.getText().trim(); // Ini akan menjadi 'Sakit'
+        String jumlahIzinStr = txt_jumlahizin.getText().trim();
+
+        if (idanggotaStr.isEmpty() || jumlahHadirStr.isEmpty() || jumlahAlfaStr.isEmpty() || jumlahIzinStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua kolom harus diisi.");
+            return;
+        }
+
+        try {
+            int idanggota = Integer.parseInt(idanggotaStr);
+            int jumlahHadir = Integer.parseInt(jumlahHadirStr);
+            int jumlahlahsakit = Integer.parseInt(jumlahAlfaStr); // Perbaikan nama kolom
+            int jumlahizin = Integer.parseInt(jumlahIzinStr);
+
+            Connection con = null;
+            PreparedStatement pstAbsen = null;
+            PreparedStatement pstAnggota = null;
+            ResultSet rsAnggota = null;
+
+            try {
+                con = Koneksi.getConnection();
+                if (con == null) {
+                    JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat disimpan.");
+                    return;
+                }
+                
+                // Cek apakah idanggota valid dan ada di tabel anggota
+                String sqlCheckAnggota = "SELECT idanggota FROM anggota WHERE idanggota = ?";
+                pstAnggota = con.prepareStatement(sqlCheckAnggota);
+                pstAnggota.setInt(1, idanggota);
+                rsAnggota = pstAnggota.executeQuery();
+                
+                if (!rsAnggota.next()) {
+                    JOptionPane.showMessageDialog(this, "ID Anggota tidak ditemukan. Silakan masukkan ID Anggota yang valid.");
+                    return;
+                }
+
+                // SQL untuk menyimpan data absensi baru
+                // Kolom idabsen TIDAK perlu disertakan karena SERIAL
+                String sqlAbsen = "INSERT INTO absen (idanggota, jumlahkehadiran, jumlahlahsakit, jumlahizin) VALUES (?, ?, ?, ?)";
+                pstAbsen = con.prepareStatement(sqlAbsen);
+                pstAbsen.setInt(1, idanggota);
+                pstAbsen.setInt(2, jumlahHadir);
+                pstAbsen.setInt(3, jumlahlahsakit); // Menggunakan jumlahlahsakit
+                pstAbsen.setInt(4, jumlahizin);
+                
+                pstAbsen.executeUpdate();
+
+                JOptionPane.showMessageDialog(this, "Data absensi berhasil disimpan!");
+                clearFormFields(); // Mengosongkan form
+                loadTableData(); // Muat ulang data tabel
+                
+            } finally {
+                try {
+                    if (rsAnggota != null) rsAnggota.close();
+                    if (pstAnggota != null) pstAnggota.close();
+                    if (pstAbsen != null) pstAbsen.close();
+                    if (con != null) con.close();
+                } catch (SQLException ex) {
+                    System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Input Hadir, Sakit, Izin, atau ID Anggota harus berupa angka.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal menyimpan data absensi (SQL Error): " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Metode untuk menghapus data absensi
+    private void deleteAbsensiData() {
         int selectedRow = tblABSENSI.getSelectedRow();
         if (selectedRow == -1) {
-        JOptionPane.showMessageDialog(null, "Pilih baris yang ingin diperbarui.");
-        return;
+            JOptionPane.showMessageDialog(this, "Pilih data yang ingin dihapus dari tabel!");
+            return;
+        }
+
+        // Ambil idabsen dari kolom pertama tabel (kolom 0)
+        String idabsenStr = tblABSENSI.getValueAt(selectedRow, 0).toString();
+        
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Yakin ingin menghapus absensi dengan ID " + idabsenStr + "?", "Konfirmasi Hapus",
+            JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Connection con = null;
+            PreparedStatement pst = null;
+            try {
+                con = Koneksi.getConnection();
+                if (con == null) {
+                    JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dihapus.");
+                    return;
+                }
+
+                String sql = "DELETE FROM absen WHERE idabsen = ?";
+                pst = con.prepareStatement(sql);
+                pst.setInt(1, Integer.parseInt(idabsenStr));
+                
+                int rowsAffected = pst.executeUpdate();
+                
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(this, "Data absensi berhasil dihapus!");
+                    loadTableData(); // Muat ulang data tabel
+                    clearFormFields(); // Bersihkan form
+                } else {
+                    JOptionPane.showMessageDialog(this, "Gagal menghapus data absensi. Data tidak ditemukan.");
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "ID Absen tidak valid.");
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus absensi (SQL Error): " + e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (pst != null) pst.close();
+                    if (con != null) con.close();
+                } catch (SQLException ex) {
+                    System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+            }
+        }
     }
-   
-    try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-             PreparedStatement pstmt = con.prepareStatement(    
-             "UPDATE absen SET jumlahkehadiran = ?, jumlahalfa = ?, jumlahsakit = ?, jumlahizin = ? WHERE idabsen = ?")) {
-        // Retrieve values from the selected row in tblDATAABSEN
-        int idabsen = Integer.parseInt(model.getValueAt(selectedRow, 0).toString());
-        
-        String hadirStr= model.getValueAt(selectedRow, 4).toString();
-        String alfaStr = model.getValueAt(selectedRow, 5).toString();
-        String sakitStr = model.getValueAt(selectedRow, 6).toString();
-        String izinStr = model.getValueAt(selectedRow,7).toString();
-        
-        int jumlahkehadiran = parseValidCount(hadirStr);
-        int jumlahalfa = parseValidCount(alfaStr);
-        int jumlahsakit = parseValidCount(sakitStr);
-        int jumlahizin = parseValidCount(izinStr);
-         // Setting values to PreparedStatement
-        pstmt.setInt(1, jumlahkehadiran);
-        pstmt.setInt(2, jumlahalfa);
-        pstmt.setInt(3, jumlahsakit);
-        pstmt.setInt(4, jumlahizin);
-        pstmt.setInt(5, idabsen);
-        
-        int rowsUpdate = pstmt.executeUpdate();
-        
-        if (rowsUpdate > 0) {
-            JOptionPane.showMessageDialog(null, "Data berhasil diperbarui.");
-        } else {
-            JOptionPane.showMessageDialog(null, "Gagal memperbarui data.");
+
+    // Metode untuk memperbarui data absensi
+    private void updateAbsensiData() {
+        int selectedRow = tblABSENSI.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Pilih baris yang ingin diperbarui di tabel.");
+            return;
         }
         
-    } catch (SQLException e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(null, "Terjadi kesalahan saat update data: " + e.getMessage());
-    }    
-    }
-    private int parseValidCount(String value) {
+        String idabsenStr = txt_idabsen.getText().trim();
+        String idanggotaStr = txt_idanggota.getText().trim();
+        String jumlahHadirStr = txt_jumlahkehadiran.getText().trim();
+        String jumlahSakitStr = txt_jumlahalfa.getText().trim(); // Ini adalah 'Sakit'
+        String jumlahIzinStr = txt_jumlahizin.getText().trim();
+
+        if (idabsenStr.isEmpty() || idanggotaStr.isEmpty() || jumlahHadirStr.isEmpty() || jumlahSakitStr.isEmpty() || jumlahIzinStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua kolom harus diisi untuk pembaruan.");
+            return;
+        }
+        
+        Connection con = null;
+        PreparedStatement pstmt = null;
+
         try {
-            int num = Integer.parseInt(value);
-            if (num < 0) return -1;
-            return num;
+            int idabsen = Integer.parseInt(idabsenStr);
+            int idanggota = Integer.parseInt(idanggotaStr);
+            int jumlahkehadiran = Integer.parseInt(jumlahHadirStr);
+            int jumlahlahsakit = Integer.parseInt(jumlahSakitStr); // Perbaikan nama kolom
+            int jumlahizin = Integer.parseInt(jumlahIzinStr);
+
+            con = Koneksi.getConnection();
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat diperbarui.");
+                return;
+            }
+            
+            // Query UPDATE. Pastikan nama kolom 'jumlahalfa' di database adalah 'jumlahlahsakit'
+            String sql = "UPDATE absen SET idanggota = ?, jumlahkehadiran = ?, jumlahlahsakit = ?, jumlahizin = ? WHERE idabsen = ?";
+            pstmt = con.prepareStatement(sql);
+            pstmt.setInt(1, idanggota);
+            pstmt.setInt(2, jumlahkehadiran);
+            pstmt.setInt(3, jumlahlahsakit); // Menggunakan jumlahlahsakit
+            pstmt.setInt(4, jumlahizin);
+            pstmt.setInt(5, idabsen);
+            
+            int rowsUpdated = pstmt.executeUpdate();
+            
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(this, "Data absensi berhasil diperbarui!");
+                loadTableData(); // Muat ulang data tabel
+                clearFormFields(); // Bersihkan form
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal memperbarui data absensi. ID Absen tidak ditemukan.");
+            }
+            
         } catch (NumberFormatException e) {
-            return -1;
+            JOptionPane.showMessageDialog(this, "Input ID, Hadir, Sakit, atau Izin harus berupa angka.");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memperbarui absensi (SQL Error): " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
     }
-    /**
-     * @param args the command line arguments
-     */
+
+    // Metode untuk membersihkan input form
+    private void clearFormFields() {
+        txt_idabsen.setText("");
+        txt_idanggota.setText("");
+        txt_jumlahkehadiran.setText("");
+        txt_jumlahalfa.setText(""); // Sesuaikan dengan nama kolom yang benar
+        txt_jumlahsakit.setText("");
+        txt_jumlahizin.setText("");
+    }
+    
+    // Metode main untuk pengujian terpisah
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -486,7 +627,7 @@ public class AdminDataAbsensi extends javax.swing.JFrame {
         /* Create and display the form */
        java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-          int idAdmin = 123;
+          int idAdmin = 1; // ID Admin dummy untuk pengujian mandiri
 
             AdminDataAbsensi cpage = new AdminDataAbsensi(idAdmin);
             cpage.setVisible(true);

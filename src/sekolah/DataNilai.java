@@ -4,16 +4,17 @@
  */
 package sekolah;
 
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import javax.swing.JOptionPane; // Sudah tercakup oleh import spesifik
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// import java.awt.event.ActionEvent; // Sudah tercakup oleh import spesifik
+// import java.awt.event.ActionListener; // Sudah tercakup oleh import spesifik
+// import java.sql.*; // Duplikat
 
 /**
  *
@@ -21,23 +22,17 @@ import java.sql.*;
  */
 public class DataNilai extends javax.swing.JFrame {
     private int idanggota;
-    private Connection con;
+    // private Connection con; // Hapus ini, koneksi diambil dan ditutup per method
     
     /**
      * Creates new form DataNilai
      */
     public DataNilai(int idanggota) {
-     initComponents();
+        initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
         this.idanggota = idanggota;
-        try {
-            
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-        } catch (ClassNotFoundException | SQLException e) {
-            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
+        // Tidak perlu koneksi di constructor
+        loadDataForm(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -66,16 +61,29 @@ public class DataNilai extends javax.swing.JFrame {
         btnLIHATNILAI = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Data Nilai Siswa"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("Nama");
 
+        text_nama.setEditable(false); // Tidak bisa di-edit
+        
+        text_kelas.setEditable(false); // Tidak bisa di-edit
+        
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel2.setText("Kelas");
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel3.setText("Nilai UH");
 
+        text_UH.setEditable(false); // Tidak bisa di-edit
+        
+        text_UTS.setEditable(false); // Tidak bisa di-edit
+        
+        text_UAS.setEditable(false); // Tidak bisa di-edit
+        
+        text_Akhir.setEditable(false); // Tidak bisa di-edit
+        
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel4.setText("Nilai UTS");
 
@@ -85,14 +93,14 @@ public class DataNilai extends javax.swing.JFrame {
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel6.setText("Nilai Akhir");
 
-        btnKEMBALI.setText("CLOSE");
+        btnKEMBALI.setText("KEMBALI"); // Mengubah teks agar lebih umum
         btnKEMBALI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnKEMBALIActionPerformed(evt);
             }
         });
 
-        btnLIHATNILAI.setText("LIHAT NILAI");
+        btnLIHATNILAI.setText("REFRESH"); // Mengubah teks agar lebih umum
         btnLIHATNILAI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLIHATNILAIActionPerformed(evt);
@@ -181,46 +189,74 @@ public class DataNilai extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         DataPage guestPage = new DataPage(idanggota);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnLIHATNILAIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATNILAIActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        loadDataForm(); // Panggil metode untuk memuat ulang data
     }//GEN-LAST:event_btnLIHATNILAIActionPerformed
+
+    // Metode untuk memuat data nilai siswa
     private void loadDataForm() {
-    try {
-        String query = "SELECT a.nama, a.kelas, n.nilaiUH, n.nilaiUTS, n.nilaiUAS, n.nilaiAkhir "
-                     + "FROM nilai n "
-                     + "JOIN anggota a ON n.idanggota = a.idanggota "
-                     + "WHERE n.idanggota = ?";
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
 
-        PreparedStatement pstmt = con.prepareStatement(query);
-        pstmt.setInt(1, idanggota);  // idanggota sebagai parameter filter
-        ResultSet rs = pstmt.executeQuery();
+        try {
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
+                return;
+            }
 
-        if (rs.next()) {
-            text_nama.setText(rs.getString("nama"));
-            text_kelas.setText(rs.getString("kelas"));
-            text_UH.setText(rs.getString("nilaiUH"));
-            text_UTS.setText(rs.getString("nilaiUTS"));
-            text_UAS.setText(rs.getString("nilaiUAS"));
-            text_Akhir.setText(rs.getString("nilaiAkhir"));
-        } else {
-            JOptionPane.showMessageDialog(this, "Data tidak ditemukan untuk idanggota: " + idanggota);
+            // Query untuk mendapatkan data nilai dan info anggota
+            String query = "SELECT a.nama, a.kelas, n.nilaiUH, n.nilaiUTS, n.nilaiUAS, n.nilaiAkhir "
+                         + "FROM nilai n "
+                         + "JOIN anggota a ON n.idanggota = a.idanggota "
+                         + "WHERE n.idanggota = ?";
+
+            pstmt = con.prepareStatement(query);
+            pstmt.setInt(1, idanggota); // idanggota sebagai parameter filter
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                text_nama.setText(rs.getString("nama"));
+                text_kelas.setText(rs.getString("kelas"));
+                text_UH.setText(String.valueOf(rs.getDouble("nilaiUH")));
+                text_UTS.setText(String.valueOf(rs.getDouble("nilaiUTS")));
+                text_UAS.setText(String.valueOf(rs.getDouble("nilaiUAS")));
+                text_Akhir.setText(String.valueOf(rs.getDouble("nilaiAkhir")));
+            } else {
+                JOptionPane.showMessageDialog(this, "Data nilai tidak ditemukan untuk ID anggota: " + idanggota);
+                // Bersihkan field jika data tidak ditemukan
+                text_nama.setText("");
+                text_kelas.setText("");
+                text_UH.setText("");
+                text_UTS.setText("");
+                text_UAS.setText("");
+                text_Akhir.setText("");
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat data nilai: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) { // Tangkap Exception umum
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan tak terduga: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Pastikan semua resource ditutup di blok finally
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-
-        rs.close();
-        pstmt.close();
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat data: " + e.getMessage());
-        e.printStackTrace();
     }
-}
-
     
     /**
      * @param args the command line arguments
@@ -252,9 +288,9 @@ public class DataNilai extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
           public void run() {
-                int idAnggota = 1; // Ganti dengan nilai idPasien yang sesuai dari hasil query
+                int idAnggota = 1; // ID Anggota dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
             DataNilai cpage = new DataNilai (idAnggota);
-            cpage.setVisible(true);; // Menampilkan halaman Guest
+            cpage.setVisible(true);
                }
         });
    
@@ -277,4 +313,4 @@ public class DataNilai extends javax.swing.JFrame {
     private javax.swing.JTextField text_kelas;
     private javax.swing.JTextField text_nama;
     // End of variables declaration//GEN-END:variables
-}
+}   

@@ -4,29 +4,32 @@
  */
 package sekolah;
 
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// Import yang tidak diperlukan
+// import javax.swing.*;
+// import java.awt.event.ActionEvent;
+// import java.awt.event.ActionListener;
+// import java.sql.*;
 
 /**
  *
  * @author fitri
  */
 public class LoginSiswa extends javax.swing.JFrame {
-  Connection con;
+  // Connection con; // Tidak perlu mendeklarasikan Connection con di sini jika selalu diambil dari Koneksi.getConnection()
 
     /**
      * Creates new form LoginSiswa
      */
     public LoginSiswa() {
             initComponents();
+            setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
     }
 
     /**
@@ -49,10 +52,12 @@ public class LoginSiswa extends javax.swing.JFrame {
         txtpassword = new javax.swing.JPasswordField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Login Siswa"); // Menambahkan judul window
 
         jPanel1.setBackground(new java.awt.Color(204, 204, 204));
 
-        jLabel1.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\OneDrive\\Dokumen\\NetBeansProjects\\sekolah\\WhatsApp Image 2025-05-09 at 08.47.09_99c75a4d.jpg")); // NOI18N
+        // Mengubah path icon menjadi relatif terhadap classpath
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-09 at 08.47.09_99c75a4d.jpg"))); // NOI18N
 
         jLabel2.setFont(new java.awt.Font("Yu Gothic Medium", 0, 18)); // NOI18N
         jLabel2.setText("SMP Kartika XI-3 Jakarta");
@@ -145,48 +150,71 @@ public class LoginSiswa extends javax.swing.JFrame {
 
     private void btnLOGINActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLOGINActionPerformed
         String username = txtusername.getText();
-String password = new String(txtpassword.getPassword());
+        String password = new String(txtpassword.getPassword()); // Ambil password sebagai String
 
-try {
-    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-    if (con == null) {
-        JOptionPane.showMessageDialog(this, "Database connection is null. Please check database connection.");
-        return;
-    }
-    // Ambil idanggota dan username sekaligus
-    String sql = "SELECT idanggota, username FROM anggota WHERE username = ? AND password = ?";
-    PreparedStatement pstmt = con.prepareStatement(sql);
-    pstmt.setString(1, username);
-    pstmt.setString(2, password);
-    ResultSet rs = pstmt.executeQuery();
+        Connection con = null; // Deklarasikan connection di luar try
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
 
-    // Login berhasil di sini
-if (rs.next()) {
-    int idanggota = rs.getInt("idanggota");
-    String usernameDb = rs.getString("username");
+        try {
+            // Gunakan kelas Koneksi kamu untuk mendapatkan koneksi ke PostgreSQL
+            con = Koneksi.getConnection(); 
+            
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Periksa konfigurasi database.");
+                return; // Keluar jika koneksi null
+            }
+            
+            // Query SQL untuk anggota (siswa)
+            // Pastikan nama tabel 'anggota' dan kolom 'username', 'password', 'idanggota' sesuai DB PostgreSQL
+            String sql = "SELECT idanggota, username FROM anggota WHERE username = ? AND password = ?";
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            rs = pstmt.executeQuery();
 
-    UserSession.setUsername(usernameDb);
-    System.out.println("DEBUG: Username di UserSession = " + UserSession.getUsername());
+            // Login berhasil
+            if (rs.next()) {
+                int idanggota = rs.getInt("idanggota");
+                String usernameDb = rs.getString("username");
 
-    DataPage cpage = new DataPage(idanggota);
-    cpage.setVisible(true);
-    dispose();
-    
-    } else {
-        JOptionPane.showMessageDialog(this, "username atau password salah!");
-    }
+                // Set user session
+                UserSession.setUsername(usernameDb);
+                UserSession.setUserId(idanggota); // Simpan ID anggota
+                UserSession.setUserType("Siswa"); // Set tipe user
 
-    rs.close();
-    pstmt.close();
-} catch (SQLException e) {
-    JOptionPane.showMessageDialog(this, "Failed to authenticate: " + e.getMessage());
-    e.printStackTrace();
-}
+                System.out.println("DEBUG: Username di UserSession = " + UserSession.getUsername());
+                System.out.println("DEBUG: ID Anggota di UserSession = " + UserSession.getUserId());
+                System.out.println("DEBUG: Tipe User di UserSession = " + UserSession.getUserType());
 
+                // Buka halaman DataPage dan tutup LoginSiswa
+                DataPage cpage = new DataPage(idanggota); // Kirim idanggota jika DataPage membutuhkannya
+                cpage.setVisible(true);
+                this.dispose(); // Tutup jendela login saat ini
+            } else {
+                JOptionPane.showMessageDialog(this, "Username atau password salah!");
+                txtusername.setText("");
+                txtpassword.setText("");
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan database: " + e.getMessage());
+            e.printStackTrace(); // Cetak stack trace untuk debugging lebih lanjut
+        } finally {
+            // Tutup ResultSet, PreparedStatement, dan Connection di blok finally
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }
     }//GEN-LAST:event_btnLOGINActionPerformed
 
     private void btnCANCELActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCANCELActionPerformed
-        dispose();
+        this.dispose();
         Login guestPage = new Login();
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnCANCELActionPerformed
@@ -238,7 +266,8 @@ if (rs.next()) {
     private javax.swing.JTextField txtusername;
     // End of variables declaration//GEN-END:variables
 
-    private boolean next() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+    // Hapus metode ini karena tidak digunakan dan menyebabkan error:
+    // private boolean next() {
+    // throw new UnsupportedOperationException("Not supported yet.");
+    // }
 }

@@ -4,16 +4,17 @@
  */
 package sekolah;
 
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import javax.swing.JOptionPane; // Sudah tercakup oleh import spesifik
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// import java.awt.event.ActionEvent; // Sudah tercakup oleh import spesifik
+// import java.awt.event.ActionListener; // Sudah tercakup oleh import spesifik
+// import java.sql.*; // Duplikat
 
 /**
  *
@@ -21,23 +22,17 @@ import java.sql.*;
  */
 public class DataRekomendasi extends javax.swing.JFrame {
     private int idanggota;
-    private Connection con;
+    // private Connection con; // Hapus ini, koneksi diambil dan ditutup per method
     
     /**
      * Creates new form DataRekomendasi
      */
     public DataRekomendasi(int idanggota) {
-      initComponents();
+        initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
         this.idanggota = idanggota;
-        try {
-            
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-        } catch (ClassNotFoundException | SQLException e) {
-            JOptionPane.showMessageDialog(this, "Failed to connect to database: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
+        // Tidak perlu koneksi di constructor
+        loadDataForm(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -60,24 +55,31 @@ public class DataRekomendasi extends javax.swing.JFrame {
         btnREKOMENDASI = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Rekomendasi Siswa"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setText("Nama");
 
+        text_nama.setEditable(false); // Tidak bisa di-edit
+        
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel2.setText("Kelas");
 
+        text_kelas.setEditable(false); // Tidak bisa di-edit
+        
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel3.setText("Rekomendasi");
 
-        btnKEMBALI.setText("CLOSE");
+        text_rekomendasi.setEditable(false); // Tidak bisa di-edit
+        
+        btnKEMBALI.setText("KEMBALI"); // Mengubah teks agar lebih umum
         btnKEMBALI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnKEMBALIActionPerformed(evt);
             }
         });
 
-        btnREKOMENDASI.setText("LIHAT REKOMENDASI");
+        btnREKOMENDASI.setText("REFRESH"); // Mengubah teks agar lebih umum
         btnREKOMENDASI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnREKOMENDASIActionPerformed(evt);
@@ -148,80 +150,109 @@ public class DataRekomendasi extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         DataPage guestPage = new DataPage(idanggota);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnREKOMENDASIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnREKOMENDASIActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        loadDataForm(); // Panggil metode untuk memuat ulang data
     }//GEN-LAST:event_btnREKOMENDASIActionPerformed
+
+    // Metode untuk memuat data rekomendasi siswa
     private void loadDataForm() {
-    String sql = "SELECT a.nama, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS, r.rekomendasi " +
-                 "FROM rekomendasi r " +
-                 "JOIN anggota a ON r.idanggota = a.idanggota " +
-                 "JOIN absen ab ON r.idabsen = ab.idabsen " +
-                 "JOIN nilai n ON r.idnilai = n.idnilai " +
-                 "WHERE r.idanggota = ?";
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
 
-    final int TOTAL_HARI = 30;
+        // Query untuk mengambil data anggota, absen, nilai, dan rekomendasi
+        // Perhatikan: ini akan mengambil satu baris rekomendasi yang cocok,
+        // jika ada banyak entri absen/nilai untuk satu anggota, mungkin perlu disesuaikan.
+        // Asumsi nilai 'rekomendasi' di tabel 'rekomendasi' adalah hasil akhir.
+        String sql = "SELECT a.nama, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS, n.nilaiAkhir, r.rekomendasi " +
+                     "FROM anggota a " +
+                     "JOIN absen ab ON a.idanggota = ab.idanggota " +
+                     "JOIN nilai n ON a.idanggota = n.idanggota " +
+                     "JOIN rekomendasi r ON a.idanggota = r.idanggota AND ab.idabsen = r.idabsen AND n.idnilai = r.idnilai " + // Join dengan rekomendasi
+                     "WHERE a.idanggota = ?";
 
-    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-         PreparedStatement pst = conn.prepareStatement(sql)) {
+        final int TOTAL_HARI = 30; // Konstanta untuk total hari absensi
 
-        pst.setInt(1, idanggota); // idanggota harus sudah terisi
+        try {
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data rekomendasi tidak dapat dimuat.");
+                return;
+            }
+            
+            pst = con.prepareStatement(sql);
+            pst.setInt(1, idanggota); // idanggota sebagai parameter filter
+            rs = pst.executeQuery();
 
-        try (ResultSet rs = pst.executeQuery()) {
             if (rs.next()) {
+                // Ambil data dari ResultSet
                 String nama = rs.getString("nama");
                 String kelas = rs.getString("kelas");
                 int kehadiran = rs.getInt("jumlahkehadiran");
                 double nilaiUH = rs.getDouble("nilaiUH");
                 double nilaiUTS = rs.getDouble("nilaiUTS");
                 double nilaiUAS = rs.getDouble("nilaiUAS");
-                String rekomendasiDb = rs.getString("rekomendasi");
+                double nilaiAkhirDB = rs.getDouble("nilaiAkhir");
+                String rekomendasiDb = rs.getString("rekomendasi"); // Ambil rekomendasi dari tabel rekomendasi
 
-                // Jika kolom rekomendasi di DB kosong, hitung secara dinamis:
-                String rekomendasi;
+                int tidakHadir = TOTAL_HARI - kehadiran;
+
+                String rekomendasiTampil;
+                // Logika untuk menampilkan rekomendasi: jika dari DB kosong, hitung ulang
                 if (rekomendasiDb == null || rekomendasiDb.trim().isEmpty()) {
                     double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
-                    double nilaiAbsensi = (kehadiran * 0.7) / 3.0;
-                    double nilaiAkhir = rataNilai + nilaiAbsensi;
-                    int tidakHadir = TOTAL_HARI - kehadiran;
+                    double nilaiAbsensiKontribusi = (kehadiran * 0.7) / 3.0;
+                    double nilaiAkhirHitung = rataNilai + nilaiAbsensiKontribusi;
 
-                    if (nilaiAkhir >= 85 && tidakHadir <= 2) {
-                        rekomendasi = "Siswa Berprestasi";
-                    } else if (nilaiAkhir >= 70 && tidakHadir <= 5) {
-                        rekomendasi = "Siswa Berbakat";
+                    if (nilaiAkhirHitung >= 85 && tidakHadir <= 2) {
+                        rekomendasiTampil = "Siswa Berprestasi";
+                    } else if (nilaiAkhirHitung >= 70 && tidakHadir <= 5) {
+                        rekomendasiTampil = "Siswa Berbakat";
                     } else if (tidakHadir > 5) {
-                        rekomendasi = "Kurang Presensi";
+                        rekomendasiTampil = "Kurang Presensi";
                     } else {
-                        rekomendasi = "Perlu Pendampingan";
+                        rekomendasiTampil = "Perlu Pendampingan";
                     }
                 } else {
-                    rekomendasi = rekomendasiDb;
+                    rekomendasiTampil = rekomendasiDb; // Gunakan yang ada di DB
                 }
 
                 // Tampilkan ke text field
                 text_nama.setText(nama);
                 text_kelas.setText(kelas);
-                text_rekomendasi.setText(rekomendasi);
+                text_rekomendasi.setText(rekomendasiTampil);
 
             } else {
-                JOptionPane.showMessageDialog(null, "Data tidak ditemukan untuk ID anggota: " + idanggota);
-                // Clear field jika data tidak ditemukan
+                JOptionPane.showMessageDialog(this, "Data rekomendasi tidak ditemukan untuk ID anggota: " + idanggota + ". Pastikan data di tabel 'anggota', 'absen', 'nilai', dan 'rekomendasi' sudah ada dan terhubung dengan ID ini.");
+                // Bersihkan field jika data tidak ditemukan
                 text_nama.setText("");
                 text_kelas.setText("");
                 text_rekomendasi.setText("");
             }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat data rekomendasi: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) { // Tangkap Exception umum
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan tak terduga: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Pastikan semua resource ditutup di blok finally
+            try {
+                if (rs != null) rs.close();
+                if (pst != null) pst.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-    } catch (SQLException e) {
-        JOptionPane.showMessageDialog(null, "Gagal memuat data rekomendasi: " + e.getMessage());
-        e.printStackTrace();
     }
-}
 
     /**
      * @param args the command line arguments
@@ -253,9 +284,9 @@ public class DataRekomendasi extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
              public void run() {
-                int idAnggota = 1; // Ganti dengan nilai idPasien yang sesuai dari hasil query
-            DataAbsensi cpage = new DataAbsensi (idAnggota);
-            cpage.setVisible(true);; // Menampilkan halaman Guest
+                int idAnggota = 1; // ID Anggota dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
+                DataRekomendasi cpage = new DataRekomendasi (idAnggota); // Memanggil kelas ini sendiri
+                cpage.setVisible(true);
                }
         });
    

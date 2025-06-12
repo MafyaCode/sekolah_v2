@@ -3,23 +3,23 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
+// import java.sql.*; // Duplikat
 import java.util.HashMap;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -39,6 +39,8 @@ public class GuruRekomendasi extends javax.swing.JFrame {
     public GuruRekomendasi(int idGuru) {
         this.idGuru = idGuru;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
+        loadTableData(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -58,6 +60,7 @@ public class GuruRekomendasi extends javax.swing.JFrame {
         btnREKOMENDASI = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Guru Rekomendasi"); // Menambahkan judul window
 
         btnKEMBALI.setText("KEMBALI");
         btnKEMBALI.addActionListener(new java.awt.event.ActionListener() {
@@ -71,18 +74,26 @@ public class GuruRekomendasi extends javax.swing.JFrame {
 
         tblDATAREKOMENDASI.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+                {null, null, null, null, null, null, null, null, null}, // Menambahkan kolom internal ID
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "No", "Nama", "NIS", "Kelas", "Rekomendasi"
+                "No", "ID Anggota", "Nama", "NIS", "Kelas", "Hadir", "Nilai Akhir", "Rekomendasi" // Menyesuaikan kolom
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblDATAREKOMENDASI);
 
-        btnREKOMENDASI.setText("LIHAT REKOMENDASI");
+        btnREKOMENDASI.setText("REFRESH REKOMENDASI"); // Mengubah teks
         btnREKOMENDASI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnREKOMENDASIActionPerformed(evt);
@@ -140,72 +151,98 @@ public class GuruRekomendasi extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruDashboard guestPage = new GuruDashboard(idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnREKOMENDASIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnREKOMENDASIActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        loadTableData(); // Panggil metode untuk memuat ulang data
     }//GEN-LAST:event_btnREKOMENDASIActionPerformed
-    private void loadDataForm() {
-    DefaultTableModel model = (DefaultTableModel) tblDATAREKOMENDASI.getModel();
-    model.setRowCount(0);
 
-    String sql = "SELECT a.nama, a.nis, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS " +
-                 "FROM anggota a " +
-                 "JOIN absen ab ON a.idanggota = ab.idanggota " +
-                 "JOIN nilai n ON a.idanggota = n.idanggota";
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
+        DefaultTableModel model = (DefaultTableModel) tblDATAREKOMENDASI.getModel();
+        model.setRowCount(0); // Bersihkan baris yang ada
 
-    final int TOTAL_HARI = 30;
+        Connection con = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
 
-    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-         PreparedStatement pst = conn.prepareStatement(sql);
-         ResultSet rs = pst.executeQuery()) {
+        // Query untuk mengambil data anggota, absen, dan nilai untuk perhitungan rekomendasi
+        // Perhatikan: Rekomendasi di sini dihitung ulang di Java, tidak diambil dari tabel 'rekomendasi'
+        // Jika Anda ingin mengambil dari tabel 'rekomendasi', Anda perlu JOIN dengan tabel 'rekomendasi' juga
+        String sql = "SELECT a.idanggota, a.nama, a.nis, a.kelas, ab.jumlahkehadiran, n.nilaiUH, n.nilaiUTS, n.nilaiUAS, n.nilaiAkhir " +
+                     "FROM anggota a " +
+                     "JOIN absen ab ON a.idanggota = ab.idanggota " +
+                     "JOIN nilai n ON a.idanggota = n.idanggota ORDER BY a.idanggota ASC";
 
-        int nomor = 1;  // Inisialisasi nomor urut
+        final int TOTAL_HARI = 30; // Konstanta untuk total hari absensi
 
-        while (rs.next()) {
-            String nama = rs.getString("nama");
-            String nis = rs.getString("nis");
-            String kelas = rs.getString("kelas");
-            int kehadiran = rs.getInt("jumlahkehadiran");
-            double nilaiUH = rs.getDouble("nilaiUH");
-            double nilaiUTS = rs.getDouble("nilaiUTS");
-            double nilaiUAS = rs.getDouble("nilaiUAS");
-
-            double rataNilai = (nilaiUH + nilaiUTS + nilaiUAS) / 3.0;
-            double nilaiAbsensi = (kehadiran * 0.7) / 3.0;
-            double nilaiAkhir = rataNilai + nilaiAbsensi;
-            int tidakHadir = TOTAL_HARI - kehadiran;
-
-            String rekomendasi;
-            if (nilaiAkhir >= 85 && tidakHadir <= 2) {
-                rekomendasi = "Siswa Berprestasi";
-            } else if (nilaiAkhir >= 70 && tidakHadir <= 5) {
-                rekomendasi = "Siswa Berbakat";
-            } else if (tidakHadir > 5) {
-                rekomendasi = "Kurang Presensi";
-            } else {
-                rekomendasi = "Perlu Pendampingan";
+        try {
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data rekomendasi tidak dapat dimuat.");
+                return;
             }
+            
+            pst = con.prepareStatement(sql);
+            rs = pst.executeQuery();
 
-            model.addRow(new Object[]{
-                nomor++,  // Nomor urut
-                nama,
-                nis,
-                kelas,
-                rekomendasi
-            });
+            int nomor = 1; // Inisialisasi nomor urut
+
+            while (rs.next()) {
+                // Ambil data dari ResultSet
+                int idanggota = rs.getInt("idanggota");
+                String nama = rs.getString("nama");
+                String nis = rs.getString("nis");
+                String kelas = rs.getString("kelas");
+                int kehadiran = rs.getInt("jumlahkehadiran");
+                double nilaiUH = rs.getDouble("nilaiUH");
+                double nilaiUTS = rs.getDouble("nilaiUTS");
+                double nilaiUAS = rs.getDouble("nilaiUAS");
+                double nilaiAkhirDB = rs.getDouble("nilaiAkhir"); // Ambil nilaiAkhir dari DB
+
+                int tidakHadir = TOTAL_HARI - kehadiran;
+
+                String rekomendasi;
+                // Logika rekomendasi berdasarkan nilai Akhir dan Ketidakhadiran
+                if (nilaiAkhirDB >= 85 && tidakHadir <= 2) {
+                    rekomendasi = "Siswa Berprestasi";
+                } else if (nilaiAkhirDB >= 70 && tidakHadir <= 5) {
+                    rekomendasi = "Siswa Berbakat";
+                } else if (tidakHadir > 5) {
+                    rekomendasi = "Kurang Presensi";
+                } else {
+                    rekomendasi = "Perlu Pendampingan";
+                }
+
+                // Tambahkan baris ke model tabel
+                model.addRow(new Object[]{
+                    nomor++,                           // Nomor urut
+                    idanggota,                         // ID Anggota
+                    nama,
+                    nis,
+                    kelas,
+                    kehadiran,
+                    nilaiAkhirDB,                      // Nilai Akhir dari DB
+                    rekomendasi
+                });
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data rekomendasi: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pst != null) pst.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-
-    } catch (SQLException e) {
-        JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-        e.printStackTrace();
     }
-}
     /**
      * @param args the command line arguments
      */
@@ -236,7 +273,7 @@ public class GuruRekomendasi extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
            public void run() {
-          int idGuru = 123;
+          int idGuru = 1; // ID Guru dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
 
             GuruRekomendasi cpage = new GuruRekomendasi(idGuru);
             cpage.setVisible(true);

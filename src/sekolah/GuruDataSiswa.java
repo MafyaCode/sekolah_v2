@@ -3,23 +3,24 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.Connection; // Duplikat
+// import java.sql.DriverManager; // Duplikat
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
+// import java.sql.ResultSet; // Duplikat
+// import java.sql.SQLException; // Duplikat
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
+import java.sql.Date; // Untuk tipe data DATE
+// import java.sql.*; // Duplikat
 import java.util.HashMap;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -40,6 +41,8 @@ public class GuruDataSiswa extends javax.swing.JFrame {
     public GuruDataSiswa(int idGuru) {
         this.idGuru = idGuru;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
+        loadTableData(); // Memuat data saat frame diinisialisasi
     }
 
     /**
@@ -59,6 +62,7 @@ public class GuruDataSiswa extends javax.swing.JFrame {
         btnLIHATDATA = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Guru Data Siswa"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setText("DATA SISWA");
@@ -72,18 +76,26 @@ public class GuruDataSiswa extends javax.swing.JFrame {
 
         tblDATASISWA.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null}
+                {null, null, null, null, null, null, null, null}, // Menambahkan kolom ID Anggota
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "No ", "Nama", "NIS", "Kelas", "Tanggal Lahir", "Jenis Kelamin", "Alamat"
+                "No", "ID Anggota", "Nama", "NIS", "Kelas", "Tanggal Lahir", "Jenis Kelamin", "Alamat" // Menyesuaikan kolom
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false // Semua kolom tidak bisa diedit untuk tampilan guru
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblDATASISWA);
 
-        btnLIHATDATA.setText("LIHAT DATA");
+        btnLIHATDATA.setText("REFRESH DATA"); // Mengubah teks
         btnLIHATDATA.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLIHATDATAActionPerformed(evt);
@@ -141,35 +153,64 @@ public class GuruDataSiswa extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruDashboard guestPage = new GuruDashboard(idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnLIHATDATAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATDATAActionPerformed
-        // TODO add your handling code here:
+        loadTableData(); // Panggil metode untuk memuat ulang data
+    }//GEN-LAST:event_btnLIHATDATAActionPerformed
+
+    // Metode untuk memuat data ke tabel
+    private void loadTableData() {
         DefaultTableModel model = (DefaultTableModel) tblDATASISWA.getModel();
-        model.setRowCount(0);
-        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-            Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM anggota")){
+        model.setRowCount(0); // Bersihkan baris yang ada
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            con = Koneksi.getConnection(); // Menggunakan kelas Koneksi
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Data tidak dapat dimuat.");
+                return;
+            }
+
+            String sql = "SELECT idanggota, username, password, nama, nis, kelas, tanggal_lahir, jeniskelamin, alamat FROM anggota ORDER BY idanggota ASC";
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(sql);
+
+            int no = 1; // Inisialisasi nomor urut
+
             while (rs.next()) {
                 Object[] row = {
-                    rs.getInt("idanggota"),
+                    no++,                             // No
+                    rs.getInt("idanggota"),           // ID Anggota (disimpan tapi mungkin tersembunyi)
                     rs.getString("nama"),
                     rs.getString("nis"),
                     rs.getString("kelas"),
-                    rs.getDate("tanggallahir"),
+                    rs.getDate("tanggal_lahir"),      // Menggunakan getDate() untuk DATE
                     rs.getString("jeniskelamin"),
                     rs.getString("alamat")
                 };
                 model.addRow(row);
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Gagal memuat data siswa: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
-    }//GEN-LAST:event_btnLIHATDATAActionPerformed
+    }
 
     /**
      * @param args the command line arguments
@@ -201,7 +242,7 @@ public class GuruDataSiswa extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-          int idGuru = 123;
+          int idGuru = 1; // ID Guru dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
 
             GuruDataSiswa cpage = new GuruDataSiswa(idGuru);
             cpage.setVisible(true);

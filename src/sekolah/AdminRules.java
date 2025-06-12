@@ -4,30 +4,27 @@
  */
 package sekolah;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
-import java.util.HashMap;
+// Import yang tidak diperlukan karena tidak ada interaksi database langsung di sini
+// import java.sql.Connection;
+// import java.sql.DriverManager;
+// import java.sql.ResultSet;
+// import java.sql.SQLException;
+// import java.sql.Statement;
+// import javax.swing.JOptionPane;
+// import javax.swing.table.DefaultTableModel;
+// import java.sql.PreparedStatement;
+// import javax.swing.*;
+// import java.awt.event.ActionEvent;
+// import java.awt.event.ActionListener;
+// import java.sql.*;
+// import java.util.HashMap;
 import java.util.Locale;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.view.JasperViewer;
+// Import JasperReports juga tidak diperlukan jika tidak ada fungsi cetak laporan di sini
+// import net.sf.jasperreports.engine.JasperCompileManager;
+// import net.sf.jasperreports.engine.JasperFillManager;
+// import net.sf.jasperreports.engine.JasperPrint;
+// import net.sf.jasperreports.engine.JasperReport;
+// import net.sf.jasperreports.view.JasperViewer;
 
 /**
  *
@@ -42,8 +39,10 @@ public class AdminRules extends javax.swing.JFrame {
     public AdminRules(int idAdmin) {
        this.idAdmin = idAdmin;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
         Locale locale = new Locale("id","ID");
         Locale.setDefault(locale);
+        loadDataForm(); // Muat aturan saat frame dibuat
     }
 
     /**
@@ -63,6 +62,7 @@ public class AdminRules extends javax.swing.JFrame {
         textForwardChaining = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Admin Aturan (Rules)"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 3, 36)); // NOI18N
         jLabel1.setText("Metode Forward Chaining");
@@ -83,6 +83,7 @@ public class AdminRules extends javax.swing.JFrame {
 
         textForwardChaining.setColumns(20);
         textForwardChaining.setRows(5);
+        textForwardChaining.setEditable(false); // Aturan ini harusnya hanya dilihat, tidak di-edit
         jScrollPane2.setViewportView(textForwardChaining);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -137,16 +138,15 @@ public class AdminRules extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnKEMBALIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKEMBALIActionPerformed
-        // TODO add your handling code here:
         dispose();
         AdminDashboard guestPage = new AdminDashboard (idAdmin);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnKEMBALIActionPerformed
 
     private void btnLIHATActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLIHATActionPerformed
-        // TODO add your handling code here:
-        loadDataForm();
+        loadDataForm(); // Memuat ulang aturan saat tombol dilihat diklik
     }//GEN-LAST:event_btnLIHATActionPerformed
+
     private void loadDataForm() {
         String rules = 
             "Nilai\n" +
@@ -194,10 +194,10 @@ public class AdminRules extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                int idAdmin = 123; // Ganti dengan nilai idPasien yang sesuai dari hasil query
+                int idAdmin = 1; // ID Admin dummy untuk pengujian mandiri
 
-            AdminRekomendasi cpage = new AdminRekomendasi(idAdmin);
-            cpage.setVisible(true);
+                // Pastikan memanggil kelas ini sendiri, bukan AdminRekomendasi
+                new AdminRules(idAdmin).setVisible(true); 
             }
         });
     }

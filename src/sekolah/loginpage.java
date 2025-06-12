@@ -14,7 +14,8 @@ public class loginpage {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        Login log =  new Login();
-        log.show();
+        Login log = new Login();
+        // Menggunakan setVisible(true) sebagai pengganti show() yang sudah deprecated
+        log.setVisible(true); 
     }
 }

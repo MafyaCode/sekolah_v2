@@ -4,16 +4,17 @@
  */
 package sekolah;
 
+import config.Koneksi; // Import kelas Koneksi kamu
 import java.sql.Connection;
-import java.sql.DriverManager;
+// import java.sql.DriverManager; // Tidak diperlukan lagi jika menggunakan Koneksi.getConnection()
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
+// import javax.swing.*; // Sudah tercakup oleh import spesifik
+// import java.awt.event.ActionEvent; // Sudah tercakup oleh import spesifik
+// import java.awt.event.ActionListener; // Sudah tercakup oleh import spesifik
+// import java.sql.*; // Sudah tercakup oleh import spesifik (Connection, PreparedStatement, ResultSet, SQLException)
 
 /**
  *
@@ -21,12 +22,14 @@ import java.sql.*;
  */
 public class LoginAdmin extends javax.swing.JFrame {
 
+    // Connection con; // Tidak perlu mendeklarasikan Connection con di sini jika selalu diambil dari Koneksi.getConnection()
+
     /**
      * Creates new form LoginAdmin
      */
-       Connection con;
     public LoginAdmin() {
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
     }
 
     /**
@@ -46,16 +49,19 @@ public class LoginAdmin extends javax.swing.JFrame {
         txtusername = new javax.swing.JTextField();
         btnLOGIN = new javax.swing.JButton();
         btnCANCEL = new javax.swing.JButton();
-        txtpassword = new javax.swing.JPasswordField();
+        txtpassword = new javax.swing.JPasswordField(); // PASTIKAN INI JPasswordField di GUI Builder
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Login Admin"); // Menambahkan judul window
 
         jPanel1.setBackground(new java.awt.Color(204, 204, 204));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setText("SMP Kartika XI-3 Jakarta");
 
-        jLabel2.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\OneDrive\\Dokumen\\NetBeansProjects\\sekolah\\WhatsApp Image 2025-05-09 at 08.47.09_99c75a4d.jpg")); // NOI18N
+        // Mengubah path icon menjadi relatif terhadap classpath.
+        // PASTIKAN GAMBAR INI ADA DI FOLDER src/gambar/
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-09 at 08.47.09_99c75a4d.jpg"))); // NOI18N
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel3.setText("USERNAME");
@@ -145,44 +151,71 @@ public class LoginAdmin extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnLOGINActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLOGINActionPerformed
-        // TODO add your handling code here:
-        try{
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sekolah_smp", "root", "");
-            String username = txtusername.getText();
-            String password = txtpassword.getText();
-            String sql = "SELECT idadmin FROM login_a WHERE username = ? AND password = ?";
-            PreparedStatement pstmt = con.prepareStatement(sql);
+        String username = txtusername.getText();
+        String password = new String(txtpassword.getPassword()); // Ambil password sebagai String
+
+        Connection con = null; // Deklarasikan connection di luar try
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            // Gunakan kelas Koneksi kamu untuk mendapatkan koneksi ke PostgreSQL
+            con = config.Koneksi.getConnection(); 
+            
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Koneksi database gagal. Periksa konfigurasi database.");
+                return; // Keluar jika koneksi null
+            }
+            
+            // Query SQL untuk login_a (admin)
+            // Pastikan nama tabel 'login_a' dan kolom 'username', 'password', 'idadmin' sesuai DB PostgreSQL
+            String sql = "SELECT idadmin, username FROM login_a WHERE username = ? AND password = ?";
+            pstmt = con.prepareStatement(sql);
             pstmt.setString(1, username);
             pstmt.setString(2, password);
-            ResultSet rs = pstmt.executeQuery();
+            rs = pstmt.executeQuery();
+
+            // Login berhasil
             if (rs.next()) {
                 int idAdmin = rs.getInt("idadmin");
-                AdminDashboard cpage = new AdminDashboard (idAdmin);
+                // Set user session
+                UserSession.setUsername(rs.getString("username")); // Username dari DB
+                UserSession.setUserId(idAdmin); // Simpan ID admin
+                UserSession.setUserType("Admin"); // Set tipe user
+
+                System.out.println("DEBUG: Username di UserSession = " + UserSession.getUsername());
+                System.out.println("DEBUG: ID Admin di UserSession = " + UserSession.getUserId());
+                System.out.println("DEBUG: Tipe User di UserSession = " + UserSession.getUserType());
+
+                // Buka halaman AdminDashboard dan tutup LoginAdmin
+                AdminDashboard cpage = new AdminDashboard(idAdmin); // Kirim idAdmin jika AdminDashboard membutuhkannya
                 cpage.setVisible(true);
-                dispose();
+                this.dispose(); // Tutup jendela login saat ini
             } else {
-                 JOptionPane.showMessageDialog(this, "Username atau Password Salah!");
-                 txtusername.setText("");
-                 txtpassword.setText("");
+                JOptionPane.showMessageDialog(this, "Username atau password salah!");
+                txtusername.setText("");
+                txtpassword.setText("");
             }
-            con.close();
-        } catch (ClassNotFoundException e) {
-             System.out.println("Driver MySQL JDBC tidak ditemukan. Pastikan Anda memiliki driver MySQL JDBC di classpath.");
-                 e.printStackTrace();
-        }  catch (SQLException e) {
-            System.out.println("Koneksi ke database gagal. Periksa URL koneksi, username, dan password.");
-                e.printStackTrace();
-        } catch (Exception e) {
-            System.out.println("Terjadi kesalahan: " + e.getMessage());
-                e.printStackTrace();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi kesalahan database: " + e.getMessage());
+            e.printStackTrace(); // Cetak stack trace untuk debugging lebih lanjut
+        } finally {
+            // Tutup ResultSet, PreparedStatement, dan Connection di blok finally
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.err.println("Gagal menutup resource database: " + ex.getMessage());
+                ex.printStackTrace();
+            }
         }
     }//GEN-LAST:event_btnLOGINActionPerformed
 
     private void btnCANCELActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCANCELActionPerformed
-        // TODO add your handling code here:
-        dispose();
-        Login guestPage = new Login();
+        this.dispose(); // Tutup jendela LoginAdmin
+        Login guestPage = new Login(); // Kembali ke halaman pilihan Login
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnCANCELActionPerformed
 

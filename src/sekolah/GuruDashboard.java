@@ -17,6 +17,7 @@ public class GuruDashboard extends javax.swing.JFrame {
     public GuruDashboard(int idGuru) {
         this.idGuru = idGuru;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
     }
 
     /**
@@ -43,6 +44,7 @@ public class GuruDashboard extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Guru Dashboard"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 36)); // NOI18N
         jLabel1.setText("Selamat Datang GURU!!!");
@@ -55,7 +57,9 @@ public class GuruDashboard extends javax.swing.JFrame {
             }
         });
 
-        btnDATASISWA.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.17 PM.jpeg")); // NOI18N
+        // Mengubah path icon menjadi relatif terhadap classpath.
+        // PASTIKAN GAMBAR INI ADA DI FOLDER src/gambar/
+        btnDATASISWA.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.17 PM.jpeg"))); // NOI18N
         btnDATASISWA.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDATASISWAActionPerformed(evt);
@@ -65,7 +69,7 @@ public class GuruDashboard extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel2.setText("DATA SISWA");
 
-        btnNILAI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.17 PM (1).jpeg")); // NOI18N
+        btnNILAI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.17 PM (1).jpeg"))); // NOI18N
         btnNILAI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnNILAIActionPerformed(evt);
@@ -75,7 +79,7 @@ public class GuruDashboard extends javax.swing.JFrame {
         jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel3.setText("NILAI");
 
-        btnABSENSI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM.jpeg")); // NOI18N
+        btnABSENSI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM.jpeg"))); // NOI18N
         btnABSENSI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnABSENSIActionPerformed(evt);
@@ -85,7 +89,7 @@ public class GuruDashboard extends javax.swing.JFrame {
         jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel4.setText("ABSENSI");
 
-        btnREKOMENDASI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg")); // NOI18N
+        btnREKOMENDASI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg"))); // NOI18N
         btnREKOMENDASI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnREKOMENDASIActionPerformed(evt);
@@ -95,7 +99,9 @@ public class GuruDashboard extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         jLabel5.setText("REKOMENDASI");
 
-        btnLAPORAN.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg")); // NOI18N
+        // Icon btnLAPORAN sama dengan btnREKOMENDASI, mungkin ada kesalahan di desain atau ini disengaja.
+        // PASTIKAN GAMBAR INI ADA DI FOLDER src/gambar/
+        btnLAPORAN.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg"))); // NOI18N
         btnLAPORAN.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLAPORANActionPerformed(evt);
@@ -198,42 +204,38 @@ public class GuruDashboard extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnLOGOUTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLOGOUTActionPerformed
-        // TODO add your handling code here:
+        UserSession.clearSession(); // Menggunakan metode clearSession() yang baru ditambahkan
         dispose();
-        LoginAdmin guestPage = new LoginAdmin();
+        // Anda mungkin ingin kembali ke halaman Login (pilihan) daripada LoginAdmin
+        Login guestPage = new Login(); 
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnLOGOUTActionPerformed
 
     private void btnDATASISWAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDATASISWAActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruDataSiswa guestPage = new GuruDataSiswa (idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnDATASISWAActionPerformed
 
     private void btnNILAIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNILAIActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruDataNilai guestPage = new GuruDataNilai (idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnNILAIActionPerformed
 
     private void btnABSENSIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnABSENSIActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruDataAbsensi guestPage = new GuruDataAbsensi (idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnABSENSIActionPerformed
 
     private void btnREKOMENDASIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnREKOMENDASIActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruRekomendasi guestPage = new GuruRekomendasi (idGuru);
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnREKOMENDASIActionPerformed
 
     private void btnLAPORANActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLAPORANActionPerformed
-        // TODO add your handling code here:
         dispose();
         GuruLaporan guestPage = new GuruLaporan (idGuru);
         guestPage.setVisible(true);
@@ -269,7 +271,7 @@ public class GuruDashboard extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
            public void run() {
-           int idGuru = 123;
+           int idGuru = 1; // Nilai ID default hanya untuk tujuan pengujian main method
 
             GuruDashboard cpage = new GuruDashboard(idGuru);
             cpage.setVisible(true);

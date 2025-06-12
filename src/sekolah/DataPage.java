@@ -3,29 +3,26 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package sekolah;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import javax.swing.JOptionPane;
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.*;
-import java.util.HashMap;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.view.JasperViewer;
+
+// Import yang tidak diperlukan karena tidak ada interaksi database langsung di sini
+// import java.sql.Connection;
+// import java.sql.DriverManager;
+// import java.sql.ResultSet;
+// import java.sql.SQLException;
+// import java.sql.Statement;
+// import javax.swing.JOptionPane;
+// import javax.swing.table.DefaultTableModel;
+// import java.sql.PreparedStatement;
+// import javax.swing.*;
+// import java.awt.event.ActionEvent;
+// import java.awt.event.ActionListener;
+// import java.sql.*;
+// import java.util.HashMap;
+// import net.sf.jasperreports.engine.JasperCompileManager;
+// import net.sf.jasperreports.engine.JasperFillManager;
+// import net.sf.jasperreports.engine.JasperPrint;
+// import net.sf.jasperreports.engine.JasperReport;
+// import net.sf.jasperreports.view.JasperViewer;
 
 /**
  *
@@ -40,6 +37,7 @@ public class DataPage extends javax.swing.JFrame {
     public DataPage(int idanggota) {
         this.idanggota = idanggota;
         initComponents();
+        setLocationRelativeTo(null); // Menempatkan jendela di tengah layar
     }
 
     /**
@@ -64,25 +62,27 @@ public class DataPage extends javax.swing.JFrame {
         btnLOGOUT = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Siswa Dashboard"); // Menambahkan judul window
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 48)); // NOI18N
         jLabel1.setText("SELAMAT DATANG!!!");
 
-        btnNILAI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.17 PM (1).jpeg")); // NOI18N
+        // Mengubah path icon menjadi relatif terhadap classpath
+        btnNILAI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.17 PM (1).jpeg"))); // NOI18N
         btnNILAI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnNILAIActionPerformed(evt);
             }
         });
 
-        btnDATADIRI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.17 PM.jpeg")); // NOI18N
+        btnDATADIRI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.17 PM.jpeg"))); // NOI18N
         btnDATADIRI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDATADIRIActionPerformed(evt);
             }
         });
 
-        btnABSENSI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM.jpeg")); // NOI18N
+        btnABSENSI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM.jpeg"))); // NOI18N
         btnABSENSI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnABSENSIActionPerformed(evt);
@@ -101,7 +101,7 @@ public class DataPage extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel5.setText("REKOMENDASI");
 
-        btnREKOMENDASI.setIcon(new javax.swing.ImageIcon("C:\\Users\\fitri\\Downloads\\WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg")); // NOI18N
+        btnREKOMENDASI.setIcon(new javax.swing.ImageIcon(getClass().getResource("/gambar/WhatsApp Image 2025-05-12 at 12.30.18 PM (1).jpeg"))); // NOI18N
         btnREKOMENDASI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnREKOMENDASIActionPerformed(evt);
@@ -205,36 +205,32 @@ public class DataPage extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnREKOMENDASIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnREKOMENDASIActionPerformed
-        // TODO add your handling code here:
-        dispose();
+        this.dispose();
         DataRekomendasi cpage = new DataRekomendasi (idanggota);
         cpage.setVisible(true);
     }//GEN-LAST:event_btnREKOMENDASIActionPerformed
 
     private void btnLOGOUTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLOGOUTActionPerformed
-        // TODO add your handling code here:
-        dispose();
-        LoginSiswa guestPage = new LoginSiswa();
+        UserSession.clearSession(); // Membersihkan sesi saat logout
+        this.dispose();
+        Login guestPage = new Login(); // Kembali ke halaman pilihan Login
         guestPage.setVisible(true);
     }//GEN-LAST:event_btnLOGOUTActionPerformed
 
     private void btnDATADIRIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDATADIRIActionPerformed
-        // TODO add your handling code here:
-        dispose();
+        this.dispose();
         DataDiri cpage = new DataDiri (idanggota);
         cpage.setVisible(true);
     }//GEN-LAST:event_btnDATADIRIActionPerformed
 
     private void btnNILAIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNILAIActionPerformed
-        // TODO add your handling code here:
-        dispose();
+        this.dispose();
         DataNilai cpage = new DataNilai(idanggota);
         cpage.setVisible(true);
     }//GEN-LAST:event_btnNILAIActionPerformed
 
     private void btnABSENSIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnABSENSIActionPerformed
-        // TODO add your handling code here:
-        dispose();
+        this.dispose();
         DataAbsensi cpage = new DataAbsensi(idanggota);
         cpage.setVisible(true);
     }//GEN-LAST:event_btnABSENSIActionPerformed
@@ -269,7 +265,7 @@ public class DataPage extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                int idAnggota = 123;
+                int idAnggota = 1; // ID Anggota dummy untuk pengujian mandiri. Ganti dengan ID yang ada di DB.
                 
                 DataPage cpage = new DataPage(idAnggota);
                 cpage.setVisible(true);
