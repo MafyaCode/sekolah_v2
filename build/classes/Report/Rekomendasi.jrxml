@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6-5c96b6aa8a39ac1dc6b6bea4b81168e16dd39231  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Rekomendasi" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ced95029-b569-4027-895c-af2843a4e088">
+	<property name="com.jaspersoft.studio.data.sql.tables">
+		<![CDATA[c2Vrb2xhaF9zbXAuYW5nZ290YSBBUyAsMTMsMjgsODhkNWIyOTctZjNiNy00MTg3LTg4MzctN2Fm
+ZDkzODdlZTJhO3Nla29sYWhfc21wLnJla29tZW5kYXNpIEFTICwxNjksMjksODU2ZmIzYzItZTBk
+Ni00MGNmLTk5MzEtNmRmMWQ3N2Y2ZDFmOw==]]>
+	</property>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="sekolah_smp"/>
+	<style name="Title" fontName="Times New Roman" fontSize="50" isBold="true"/>
+	<style name="SubTitle" forecolor="#736343" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="12"/>
+	<style name="Row" mode="Transparent">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style backcolor="#E6DAC3"/>
+		</conditionalStyle>
+	</style>
+	<queryString language="SQL">
+		<![CDATA[SELECT sekolah_smp.anggota.idanggota,
+	sekolah_smp.anggota.nama,
+	sekolah_smp.anggota.nis,
+	sekolah_smp.anggota.kelas,
+	sekolah_smp.rekomendasi.rekomendasi
+FROM sekolah_smp.rekomendasi
+	INNER JOIN sekolah_smp.anggota ON 
+	 sekolah_smp.rekomendasi.idrekomendasi = sekolah_smp.anggota.idanggota]]>
+	</queryString>
+	<field name="idanggota" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="idanggota"/>
+		<property name="com.jaspersoft.studio.field.label" value="idanggota"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="anggota"/>
+	</field>
+	<field name="nama" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nama"/>
+		<property name="com.jaspersoft.studio.field.label" value="nama"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="anggota"/>
+	</field>
+	<field name="nis" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="nis"/>
+		<property name="com.jaspersoft.studio.field.label" value="nis"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="anggota"/>
+	</field>
+	<field name="kelas" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="kelas"/>
+		<property name="com.jaspersoft.studio.field.label" value="kelas"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="anggota"/>
+	</field>
+	<field name="rekomendasi" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="rekomendasi"/>
+		<property name="com.jaspersoft.studio.field.label" value="rekomendasi"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="rekomendasi"/>
+	</field>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="136" splitType="Stretch">
+			<image>
+				<reportElement x="0" y="0" width="164" height="126" uuid="ddc15723-2728-421f-b95e-2df9faf64ce1"/>
+				<imageExpression><![CDATA["C:/Users/fitri/OneDrive/Gambar/Pictures/logokartika.jpg"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement style="Title" x="170" y="0" width="382" height="62" uuid="1a652692-054a-40f3-ade5-68d8da36626d"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="30"/>
+				</textElement>
+				<text><![CDATA[SMP Kartika XI - 3 Jakarta]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="SubTitle" x="219" y="62" width="196" height="22" uuid="88d4231e-f014-4b0d-b871-1737ba63a1ae"/>
+				<textElement>
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[(021) 8572337]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="172" y="94" width="383" height="42" uuid="f0bfb1ea-a85a-47cd-a1a4-43f22b45e80f"/>
+				<textElement textAlignment="Right">
+					<font size="13"/>
+				</textElement>
+				<text><![CDATA[Jl. Kesatrian V No.5, RT.5/RW.3, Kb. Manggis, Kec. Matraman, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta 13150]]></text>
+			</staticText>
+			<image>
+				<reportElement x="433" y="-115" width="267" height="209" uuid="5d64e5b3-07bb-48ab-89dc-15c0c46bb19a"/>
+				<imageExpression><![CDATA["coffee_stain.png"]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="16" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="15" width="555" height="1" uuid="1a61a836-d137-48b1-ad67-6ff64600bf93"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement style="Column header" x="0" y="0" width="111" height="15" forecolor="#736343" uuid="bf87a1a1-da3c-46bf-a96c-7eebe37e75e3">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="a8a75b7a-5ce9-4ed9-a083-f278bf7139d9"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="111" y="0" width="111" height="15" forecolor="#736343" uuid="28841f8f-cfe2-4b30-9434-808eb9edfc8e">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="d2774ccb-a521-4ad4-9a14-2ff56e16c09c"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[Nama]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="222" y="0" width="111" height="15" forecolor="#736343" uuid="694d29d9-7e38-45cc-b8f7-edfe56f6060e">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b2161e9f-98c5-44bd-a2a6-317c1e91be34"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[NIS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="333" y="0" width="111" height="15" forecolor="#736343" uuid="a0eb0349-dee1-4547-9aec-40c4275cc439">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="dc16752a-dd4e-4e77-8b85-b1ab4f31e7a4"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[Kelas]]></text>
+			</staticText>
+			<staticText>
+				<reportElement style="Column header" x="444" y="0" width="111" height="15" forecolor="#736343" uuid="2aca55f6-b412-4096-a237-8cca8eae1b1f">
+					<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="baf296ac-b1dd-417f-8cf8-7f2313e2abb6"/>
+				</reportElement>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[Rekomendasi]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<frame>
+				<reportElement style="Row" mode="Opaque" x="0" y="0" width="555" height="15" uuid="a98495d8-3c8d-4fa0-81f5-30c3efc2f766"/>
+				<textField textAdjust="StretchHeight">
+					<reportElement style="Detail" x="0" y="0" width="111" height="15" uuid="339eef98-71ce-4565-bb6d-5078e170f327">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="a8a75b7a-5ce9-4ed9-a083-f278bf7139d9"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[$F{idanggota}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement style="Detail" x="111" y="0" width="111" height="15" uuid="69c34b5b-0963-4e7c-8e2e-68d545c151ab">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="d2774ccb-a521-4ad4-9a14-2ff56e16c09c"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[$F{nama}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement style="Detail" x="222" y="0" width="111" height="15" uuid="92e0c607-37b8-4313-bd0c-8085ca0cebfa">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b2161e9f-98c5-44bd-a2a6-317c1e91be34"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[$F{nis}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement style="Detail" x="333" y="0" width="111" height="15" uuid="1c0b69e8-a0b0-42d6-9a50-e2fec8fc5d99">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="dc16752a-dd4e-4e77-8b85-b1ab4f31e7a4"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[$F{kelas}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="StretchHeight">
+					<reportElement style="Detail" x="444" y="0" width="111" height="15" uuid="f63bcfb2-8863-4f88-8c3d-9ff247ab33fd">
+						<property name="com.jaspersoft.studio.spreadsheet.connectionID" value="baf296ac-b1dd-417f-8cf8-7f2313e2abb6"/>
+					</reportElement>
+					<textFieldExpression><![CDATA[$F{rekomendasi}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch">
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="555" height="1" uuid="fa45a887-615a-4d84-a2d7-8a2219671b3c"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineColor="#999999"/>
+				</graphicElement>
+			</line>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="25" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="-21" y="1" width="597" height="24" forecolor="#D0B48E" backcolor="#F2EBDF" uuid="183682bc-d976-4756-83e0-6625a3f98ed1"/>
+				<textField evaluationTime="Report">
+					<reportElement style="Column header" x="533" y="0" width="40" height="20" forecolor="#736343" uuid="0193f9b3-1559-491a-8580-b6988863b6a1"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="Column header" x="453" y="0" width="80" height="20" forecolor="#736343" uuid="d00b105e-494b-418b-8ac9-8b1b4824f4f0"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+				</textField>
+				<textField pattern="EEEEE dd MMMMM yyyy">
+					<reportElement style="Column header" x="22" y="1" width="197" height="20" forecolor="#736343" uuid="0616f3fe-0354-456f-8911-ec30ec51a5ae"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10" isBold="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
